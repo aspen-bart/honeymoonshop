@@ -1,0 +1,552 @@
+{
+  "dress": [
+    {
+      "name": "Stijl Jurk",
+      "terms": [
+        {
+          "name": "Bijzondere rug",
+          "slug": "bijzondere-rug"
+        },
+        {
+          "name": "Bohemian",
+          "slug": "bohemian"
+        },
+        {
+          "name": "Doorschijnend",
+          "slug": "doorschijnend"
+        },
+        {
+          "name": "Extravagant",
+          "slug": "extravagant"
+        },
+        {
+          "name": "Glamour",
+          "slug": "glamour"
+        },
+        {
+          "name": "Klassiek",
+          "slug": "klassiek"
+        },
+        {
+          "name": "Modern",
+          "slug": "modern"
+        },
+        {
+          "name": "Prinses",
+          "slug": "prinses-bruid"
+        },
+        {
+          "name": "Romantisch",
+          "slug": "romantisch"
+        },
+        {
+          "name": "Sexy",
+          "slug": "sexy"
+        },
+        {
+          "name": "Simpel",
+          "slug": "simpel"
+        },
+        {
+          "name": "Soepelvallend",
+          "slug": "soepelvallend"
+        },
+        {
+          "name": "Stijlvol",
+          "slug": "stijlvol"
+        },
+        {
+          "name": "Strak",
+          "slug": "strak"
+        },
+        {
+          "name": "Strand",
+          "slug": "strand"
+        },
+        {
+          "name": "Vintage",
+          "slug": "vintage"
+        }
+      ]
+    },
+    {
+      "name": "Silhouet",
+      "terms": [
+        {
+          "name": "A-Lijn",
+          "slug": "a-lijn"
+        },
+        {
+          "name": "Curvy (plus size)",
+          "slug": "curvy-volslank"
+        },
+        {
+          "name": "Fit & Flare",
+          "slug": "fit-flare"
+        },
+        {
+          "name": "Bruidsjumpsuits",
+          "slug": "jumpsuit"
+        },
+        {
+          "name": "Kort",
+          "slug": "kort"
+        },
+        {
+          "name": "Prinses",
+          "slug": "prinses"
+        },
+        {
+          "name": "Recht",
+          "slug": "recht"
+        },
+        {
+          "name": "Zeemeermin",
+          "slug": "zeemeermin-trouwjurken"
+        }
+      ]
+    },
+    {
+      "name": "Kleur",
+      "terms": [
+        {
+          "name": "Blush trouwjurken",
+          "slug": "blush"
+        },
+        {
+          "name": "Andere kleuren",
+          "slug": "gekleurde-trouwjurken"
+        },
+        {
+          "name": "Ivoor",
+          "slug": "ivoor"
+        },
+        {
+          "name": "Nude",
+          "slug": "nude"
+        }
+      ]
+    },
+    {
+      "name": "Prijs",
+      "terms": [
+        {
+          "name": "€0 - €1000",
+          "slug": "0-1000"
+        },
+        {
+          "name": "€1000 - €1500",
+          "slug": "001-1500"
+        },
+        {
+          "name": "€1500 - €1750",
+          "slug": "1501-1750"
+        },
+        {
+          "name": "€1750 - €2000",
+          "slug": "1750-2000"
+        },
+        {
+          "name": "€2000 - €2250",
+          "slug": "2000-2250"
+        },
+        {
+          "name": "€2250 - €2500",
+          "slug": "2250-2500"
+        },
+        {
+          "name": "€2500 - €3000",
+          "slug": "2500-3000"
+        },
+        {
+          "name": "€3000 - €3500",
+          "slug": "3000-3500"
+        }
+      ]
+    },
+    {
+      "name": "Details",
+      "terms": [
+        {
+          "name": "Basque waist",
+          "slug": "basque-waist"
+        },
+        {
+          "name": "Bloemen(print)",
+          "slug": "bloemen"
+        },
+        {
+          "name": "Dessin / motief",
+          "slug": "dessin"
+        },
+        {
+          "name": "Glitters",
+          "slug": "glitters"
+        },
+        {
+          "name": "Parels",
+          "slug": "parels"
+        },
+        {
+          "name": "Ruches",
+          "slug": "ruches"
+        },
+        {
+          "name": "Sleep",
+          "slug": "sleep"
+        },
+        {
+          "name": "Split",
+          "slug": "split"
+        },
+        {
+          "name": "Strik",
+          "slug": "strik"
+        }
+      ]
+    },
+    {
+      "name": "Materiaal",
+      "terms": [
+        {
+          "name": "Chiffon",
+          "slug": "chiffon"
+        },
+        {
+          "name": "Crêpe",
+          "slug": "crepe"
+        },
+        {
+          "name": "Kant",
+          "slug": "kant"
+        },
+        {
+          "name": "Mikado",
+          "slug": "mikado"
+        },
+        {
+          "name": "Organza",
+          "slug": "organza"
+        },
+        {
+          "name": "Satijn",
+          "slug": "satijn"
+        },
+        {
+          "name": "Tule",
+          "slug": "tule"
+        },
+        {
+          "name": "Zijde",
+          "slug": "zijde"
+        }
+      ]
+    },
+    {
+      "name": "Mouwen",
+      "terms": [
+        {
+          "name": "Afneembare mouwen",
+          "slug": "afneembare-mouwen"
+        },
+        {
+          "name": "Korte mouwen",
+          "slug": "korte-mouwen"
+        },
+        {
+          "name": "Lange mouwen",
+          "slug": "lange-mouwen"
+        },
+        {
+          "name": "Off-Shoulder",
+          "slug": "off-shoulder"
+        },
+        {
+          "name": "One-Shoulder",
+          "slug": "one-shoulder"
+        },
+        {
+          "name": "Schouderbandjes",
+          "slug": "schouderbandjes"
+        },
+        {
+          "name": "Strapless",
+          "slug": "strapless"
+        }
+      ]
+    },
+    {
+      "name": "Top",
+      "terms": [
+        {
+          "name": "Boothals",
+          "slug": "boothals"
+        },
+        {
+          "name": "Halter",
+          "slug": "halter"
+        },
+        {
+          "name": "Hoog gesloten",
+          "slug": "hoog-gesloten"
+        },
+        {
+          "name": "Illusie",
+          "slug": "illusie"
+        },
+        {
+          "name": "Recht",
+          "slug": "recht-top"
+        },
+        {
+          "name": "Rond",
+          "slug": "rond"
+        },
+        {
+          "name": "Sweetheart",
+          "slug": "sweetheart"
+        },
+        {
+          "name": "V-Hals",
+          "slug": "v-hals"
+        }
+      ]
+    },
+    {
+      "name": "Merk",
+      "terms": [
+        {
+          "name": "Adore by Justin Alexander",
+          "slug": "adore-by-justin-alexander"
+        },
+        {
+          "name": "Alma Novía",
+          "slug": "alma-novia"
+        },
+        {
+          "name": "Amélie Bridal",
+          "slug": "amelie"
+        },
+        {
+          "name": "Azuree",
+          "slug": "azuree"
+        },
+        {
+          "name": "Blue by Enzoani",
+          "slug": "blue-by-enzoani"
+        },
+        {
+          "name": "Cosmobella",
+          "slug": "cosmobella"
+        },
+        {
+          "name": "Demetrios",
+          "slug": "demetrios"
+        },
+        {
+          "name": "Diane Legrand",
+          "slug": "diane-legrand"
+        },
+        {
+          "name": "ÉLYSÉE",
+          "slug": "elysee"
+        },
+        {
+          "name": "ÉTOILE",
+          "slug": "etoile"
+        },
+        {
+          "name": "Hervé Paris",
+          "slug": "herve-paris"
+        },
+        {
+          "name": "Jarice",
+          "slug": "jarice"
+        },
+        {
+          "name": "Justin Alexander",
+          "slug": "justin-alexander"
+        },
+        {
+          "name": "Ladybird",
+          "slug": "ladybird"
+        },
+        {
+          "name": "Libelle Bridal",
+          "slug": "libelle-bridal"
+        },
+        {
+          "name": "Loré",
+          "slug": "lore"
+        },
+        {
+          "name": "Love by Enzoani",
+          "slug": "love-by-enzoani"
+        },
+        {
+          "name": "Maggie Sottero",
+          "slug": "maggie-sottero"
+        },
+        {
+          "name": "Milan",
+          "slug": "milan"
+        },
+        {
+          "name": "Modeca",
+          "slug": "modeca"
+        },
+        {
+          "name": "Olvi's",
+          "slug": "olvis"
+        },
+        {
+          "name": "Pronovias",
+          "slug": "pronovias"
+        },
+        {
+          "name": "Rebecca Ingram",
+          "slug": "rebecca-ingram"
+        },
+        {
+          "name": "Rosa Clará",
+          "slug": "rosa-clara"
+        },
+        {
+          "name": "Sincerity",
+          "slug": "sincerity"
+        },
+        {
+          "name": "Sweetheart",
+          "slug": "sweetheart-merk"
+        },
+        {
+          "name": "Très Chic",
+          "slug": "tres-chic"
+        },
+        {
+          "name": "White One",
+          "slug": "white-one"
+        }
+      ]
+    }
+  ],
+  "suit": [
+    {
+      "name": "Merken",
+      "terms": [
+        {
+          "name": "Enzo Romano",
+          "slug": "enzo-romano"
+        },
+        {
+          "name": "Guglielmo G.",
+          "slug": "guglielmo-g"
+        },
+        {
+          "name": "Immediate",
+          "slug": "immediate"
+        },
+        {
+          "name": "Mascullini",
+          "slug": "mascullini"
+        },
+        {
+          "name": "Roberto Vicentti",
+          "slug": "roberto-vicentti"
+        },
+        {
+          "name": "Torre",
+          "slug": "torre"
+        },
+        {
+          "name": "Tziacco by Wilvorst",
+          "slug": "tziacco-by-wilvorst"
+        },
+        {
+          "name": "Wilvorst",
+          "slug": "wilvorst"
+        }
+      ]
+    },
+    {
+      "name": "Stijl",
+      "terms": [
+        {
+          "name": "Klassiek",
+          "slug": "klassiek"
+        },
+        {
+          "name": "Trendy",
+          "slug": "trendy"
+        }
+      ]
+    },
+    {
+      "name": "Kleur",
+      "terms": [
+        {
+          "name": "Beige",
+          "slug": "beige-trouwpak"
+        },
+        {
+          "name": "Blauw",
+          "slug": "blauw-trouwpak"
+        },
+        {
+          "name": "Bruin",
+          "slug": "bruin-trouwpak"
+        },
+        {
+          "name": "Grijs",
+          "slug": "grijs-trouwpak"
+        },
+        {
+          "name": "Groen",
+          "slug": "groen-trouwpak"
+        },
+        {
+          "name": "Paars",
+          "slug": "paars-trouwpak"
+        },
+        {
+          "name": "Rood",
+          "slug": "rood-trouwpak"
+        },
+        {
+          "name": "Zwart",
+          "slug": "zwart-trouwpak"
+        }
+      ]
+    },
+    {
+      "name": "Maat",
+      "terms": [
+        {
+          "name": "Large",
+          "slug": "large"
+        },
+        {
+          "name": "Small",
+          "slug": "small"
+        }
+      ]
+    },
+    {
+      "name": "Prijs",
+      "terms": [
+        {
+          "name": "500 - 1000",
+          "slug": "500-1000"
+        },
+        {
+          "name": "1500 - 1750",
+          "slug": "1500-1750"
+        },
+        {
+          "name": "1000 - 1500",
+          "slug": "1000-1500"
+        }
+      ]
+    }
+  ]
+}

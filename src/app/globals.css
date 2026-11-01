@@ -1,0 +1,252 @@
+@import "tailwindcss" source(none);
+@source "../";
+
+/* Honeymoon shop — huisstijl van de oude site (diep inktblauw, lila topbar, petrol voor de bruidegom, serif-koppen),
+   maar groter, contrastrijker en met meer beweging. */
+@theme {
+  --font-serif: var(--font-display), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-body), "Jost", system-ui, sans-serif;
+
+  --color-ink: #2b2843;
+  --color-ink-2: #3d3a5c;
+  --color-ink-soft: #5b5875;
+  --color-lilac: #ddd6f0;
+  --color-lilac-100: #efebf8;
+  --color-lilac-300: #c3b7e6;
+  --color-lilac-500: #9a88d0;
+  --color-lilac-700: #5f4ba8;
+  --color-petrol: #1e4b55;
+  --color-petrol-700: #163940;
+  --color-petrol-100: #e1eef0;
+  --color-cream: #f8f5f0;
+  --color-cream-2: #f1ece4;
+  --color-blush: #f4e7e2;
+  --color-gold: #b99a5b;
+  --color-line: #e6e1d8;
+  --color-success: #2f7d5b;
+  --color-danger: #b4372f;
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --radius-signature: 0 7rem 0 0;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+  h1, h2, h3, h4 {
+    @apply font-serif text-ink;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-lilac-700);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  .on-dark :focus-visible {
+    outline-color: #fff;
+  }
+  ::selection {
+    background: var(--color-lilac);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility container-x {
+  @apply mx-auto w-full max-w-[1320px] px-4 sm:px-6 lg:px-10;
+}
+
+@utility eyebrow {
+  @apply text-[0.72rem] font-medium uppercase tracking-[0.28em];
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-medium uppercase tracking-[0.14em] transition duration-300 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility btn-primary {
+  @apply btn bg-ink text-white hover:bg-lilac-700;
+}
+
+@utility btn-lilac {
+  @apply btn bg-lilac text-ink hover:bg-lilac-300;
+}
+
+@utility btn-petrol {
+  @apply btn bg-petrol text-white hover:bg-petrol-700;
+}
+
+@utility btn-ghost {
+  @apply btn border border-current bg-transparent hover:bg-ink hover:text-white;
+}
+
+@utility btn-white {
+  @apply btn bg-white text-ink hover:bg-lilac;
+}
+
+@utility link {
+  @apply font-medium text-lilac-700 underline decoration-lilac-300 decoration-2 underline-offset-4 transition hover:decoration-lilac-700;
+}
+
+@utility signature {
+  border-radius: var(--radius-signature);
+}
+
+@utility field {
+  @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-base text-ink outline-none transition placeholder:text-ink-soft/60 focus:border-lilac-700 focus:ring-4 focus:ring-lilac/60 aria-[invalid=true]:border-danger;
+}
+
+@utility label {
+  @apply mb-1.5 block text-sm font-medium text-ink;
+}
+
+@layer components {
+
+  /* Lopende tekst uit de CMS (pagina's, blogs, categorieën) */
+  .prose-hms {
+    @apply max-w-none text-[1.05rem] leading-[1.8] text-ink-2;
+  }
+  .prose-hms > * + * {
+    margin-top: 1.1em;
+  }
+  .prose-hms h2 {
+    @apply mt-12 mb-3 text-3xl sm:text-4xl;
+  }
+  .prose-hms h3 {
+    @apply mt-9 mb-2 text-2xl sm:text-[1.75rem];
+  }
+  .prose-hms h4, .prose-hms h5, .prose-hms h6 {
+    @apply mt-6 font-sans text-base font-semibold uppercase tracking-wider;
+  }
+  .prose-hms a {
+    @apply link;
+  }
+  .prose-hms ul {
+    @apply list-disc pl-6;
+  }
+  .prose-hms ol {
+    @apply list-decimal pl-6;
+  }
+  .prose-hms li + li {
+    margin-top: 0.35em;
+  }
+  .prose-hms li::marker {
+    color: var(--color-lilac-500);
+  }
+  .prose-hms strong {
+    @apply font-semibold text-ink;
+  }
+  .prose-hms em {
+    @apply font-serif text-[1.15em] italic;
+  }
+  .prose-hms blockquote {
+    @apply rounded-2xl border-l-4 border-lilac-500 bg-lilac-100 px-6 py-4 text-ink;
+  }
+  .prose-hms img {
+    @apply my-6 h-auto w-full rounded-2xl object-cover;
+  }
+  .prose-hms figure {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+  .prose-hms figure figure {
+    display: block;
+  }
+  .prose-hms figure img {
+    @apply my-0 aspect-[4/5];
+  }
+  .prose-hms table {
+    @apply w-full border-collapse text-left text-sm;
+  }
+  .prose-hms th {
+    @apply border-b-2 border-ink/20 px-3 py-2 font-semibold;
+  }
+  .prose-hms td {
+    @apply border-b border-line px-3 py-2 align-top;
+  }
+  .prose-hms .table-wrap {
+    @apply overflow-x-auto;
+  }
+  .prose-hms details {
+    @apply rounded-2xl border border-line bg-white px-5 py-1 transition open:bg-cream;
+  }
+  .prose-hms details + details {
+    margin-top: 0.6rem;
+  }
+  .prose-hms summary {
+    @apply cursor-pointer list-none py-3 pr-8 font-medium text-ink;
+    position: relative;
+  }
+  .prose-hms summary::after {
+    content: "+";
+    position: absolute;
+    right: 0;
+    top: 0.55rem;
+    font-size: 1.4rem;
+    color: var(--color-lilac-700);
+    transition: transform 0.3s;
+  }
+  .prose-hms details[open] summary::after {
+    transform: rotate(45deg);
+  }
+  .prose-hms iframe {
+    @apply aspect-video h-auto w-full rounded-2xl;
+  }
+}
+
+/* Hero: rustige Ken Burns-crossfade wanneer er geen video is */
+@keyframes kenburns {
+  0% { transform: scale(1.04) translate3d(0, 0, 0); }
+  100% { transform: scale(1.16) translate3d(-1.5%, -1%, 0); }
+}
+@keyframes heroFade {
+  0%, 100% { opacity: 0; }
+  6%, 25% { opacity: 1; }
+  31% { opacity: 0; }
+}
+.hero-slide {
+  animation: kenburns 9s var(--ease-soft) infinite alternate, heroFade 24s linear infinite;
+  opacity: 0;
+}
+.hero-slide:first-child {
+  opacity: 1;
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee 38s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise 0.9s var(--ease-soft) both;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

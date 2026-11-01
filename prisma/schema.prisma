@@ -1,0 +1,282 @@
+// Datamodel voor Honeymoon Shop. Lokaal SQLite; in productie PostgreSQL. Draai Prisma altijd via
+// `npm run prisma -- <commando>` (scripts/prisma.mjs): bij een postgres-DATABASE_URL wordt automatisch
+// prisma/schema.postgres.prisma gegenereerd en gebruikt. Pas alleen dit bestand aan.
+// Elke publieke URL staat letterlijk in een `path`-veld (met slash aan het eind), zodat de oude
+// WordPress-URL's 1-op-1 behouden blijven.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- beheer ----------
+
+/// Rollen staan in een eigen tabel: beheerder, redacteur, alleen-lezen.
+model Role {
+  id    String @id @default(cuid())
+  key   String @unique
+  name  String
+  users User[]
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String
+  passwordHash String
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id])
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  logs         AuditLog[]
+}
+
+/// Logboek: wie heeft wat wanneer aangemaakt, gewijzigd of verwijderd.
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName  String
+  action    String
+  entity    String
+  entityId  String?
+  summary   String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// Losse instellingen (winkelgegevens, openingstijden, afspraken, connecties) als JSON per sleutel.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  path      String   @unique
+  alt       String   @default("")
+  width     Int?
+  height    Int?
+  size      Int?
+  createdAt DateTime @default(now())
+}
+
+model Redirect {
+  id        String   @id @default(cuid())
+  from      String   @unique
+  to        String
+  status    Int      @default(301)
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+// ---------- catalogus ----------
+
+model Brand {
+  id       String    @id @default(cuid())
+  slug     String
+  /// "dress", "suit" of "accessory"
+  kind     String
+  name     String
+  logo     String?
+  products Product[]
+
+  @@unique([kind, slug])
+}
+
+/// Trouwjurken, trouwpakken en accessoires in één tabel (kind). Geen afrekenen: prijzen zijn indicaties.
+model Product {
+  id              String     @id @default(cuid())
+  /// "dress" | "suit" | "accessory"
+  kind            String
+  path            String     @unique
+  slug            String
+  name            String
+  brandId         String?
+  brand           Brand?     @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  articleNumber   String?
+  sku             String?
+  descriptionHtml String     @default("")
+  /// prijsindicatie voor jurken/pakken, bv. "€1750 - €2000"
+  priceText       String?
+  priceMin        Int?
+  priceMax        Int?
+  /// vaste prijs (accessoires), in euro's
+  price           Float?
+  /// [{ src, alt }]
+  images          String     @default("[]")
+  /// { "Silhouet": ["A-Lijn"], ... }
+  attributes      String     @default("{}")
+  sale            Boolean    @default(false)
+  featured        Boolean    @default(false)
+  /// "published" | "draft"
+  status          String     @default("published")
+  sortOrder       Int        @default(0)
+  /// positie van het hoofd op de eerste foto voor de pas-tool: { x, y, size } in procenten
+  tryOn           String?
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  wpId            Int?
+  categories      Category[]
+  appointments    Appointment[]
+  publishedAt     DateTime   @default(now())
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([kind, status])
+}
+
+/// Accessoirecategorieën én collecties van jurken/pakken (2027, big-sale, nieuwe-collectie, …).
+model Category {
+  id              String     @id @default(cuid())
+  /// "accessory" | "dress" | "suit"
+  kind            String
+  path            String     @unique
+  name            String
+  introHtml       String     @default("")
+  /// tekst onder de producten
+  bottomHtml      String     @default("")
+  image           String?
+  parentId        String?
+  parent          Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children        Category[] @relation("CategoryTree")
+  products        Product[]
+  sortOrder       Int        @default(0)
+  status          String     @default("published")
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+// ---------- content ----------
+
+model Page {
+  id              String   @id @default(cuid())
+  path            String   @unique
+  title           String
+  heroImage       String?
+  heroAlt         String   @default("")
+  html            String   @default("")
+  /// [{ q, a }] — zichtbare veelgestelde vragen (FAQPage)
+  faqs            String   @default("[]")
+  /// "default" | "appointment" | "contact" | "listing" | "thanks"
+  template        String   @default("default")
+  /// extra instellingen per template, bv. { "type": "trouwjurk" }
+  templateData    String   @default("{}")
+  status          String   @default("published")
+  noindex         Boolean  @default(false)
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  publishedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BlogCategory {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  introHtml       String   @default("")
+  metaTitle       String?
+  metaDescription String?
+  posts           Post[]
+  updatedAt       DateTime @updatedAt
+}
+
+model Post {
+  id              String        @id @default(cuid())
+  path            String        @unique
+  slug            String
+  title           String
+  excerpt         String        @default("")
+  html            String        @default("")
+  heroImage       String?
+  heroAlt         String        @default("")
+  categoryId      String?
+  category        BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  authorName      String        @default("Team Honeymoon shop")
+  status          String        @default("published")
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  publishedAt     DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+/// Reviews = de "Real Brides & Grooms" van de oude site (eigen pagina per review).
+model Review {
+  id              String   @id @default(cuid())
+  path            String   @unique
+  slug            String
+  name            String
+  html            String   @default("")
+  image           String?
+  /// ["/uploads/..."]
+  gallery         String   @default("[]")
+  photographer    String?
+  /// paden van gedragen jurken/pakken
+  productPaths    String   @default("[]")
+  rating          Int?
+  featured        Boolean  @default(false)
+  status          String   @default("published")
+  metaTitle       String?
+  metaDescription String?
+  weddingDate     DateTime?
+  publishedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ---------- aanvragen ----------
+
+model Appointment {
+  id          String    @id @default(cuid())
+  /// "trouwjurk" | "trouwpak" | "perfect-match" | "doorpassen"
+  type        String
+  date        String
+  time        String
+  name        String
+  email       String
+  phone       String
+  weddingDate String?
+  companions  Int       @default(0)
+  budget      String?
+  notes       String?
+  /// favorieten die de klant meeneemt: ["/trouwjurken/..."]
+  favorites   String    @default("[]")
+  productId   String?
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  source      String?
+  /// "nieuw" | "bevestigd" | "afgerond" | "geannuleerd"
+  status      String    @default("nieuw")
+  internalNote String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([date, time])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  /// pad van het product waar de vraag over gaat
+  about     String?
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
