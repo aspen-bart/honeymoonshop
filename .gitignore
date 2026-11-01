@@ -11,3 +11,4 @@ public/uploads/user
 seo-report.json
 *.log
 .DS_Store
+export/

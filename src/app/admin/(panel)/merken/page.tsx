@@ -5,6 +5,7 @@ import { SimpleForm } from "@/components/admin/SimpleForm";
 import { Field, Notice, PageHeader, Panel, input } from "@/components/admin/ui";
 import { can, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import type { Brand } from "@prisma/client";
 
 export const metadata = { title: "Merken" };
@@ -16,7 +17,7 @@ export default async function BrandsAdmin({ searchParams }: { searchParams: Prom
   const user = await requireUser();
   const sp = await searchParams;
   const params = readParams(sp, { sort: "name", dir: "asc" }, ["soort"]);
-  const where = { ...(params.q ? { name: { contains: params.q } } : {}), ...(params.filters.soort ? { kind: params.filters.soort } : {}) };
+  const where = { ...(params.q ? { name: like(params.q) } : {}), ...(params.filters.soort ? { kind: params.filters.soort } : {}) };
   const [rows, total] = await Promise.all([db.brand.findMany({ where, include: { _count: { select: { products: true } } }, orderBy: { name: params.dir }, skip: (params.page - 1) * PER_PAGE, take: PER_PAGE }), db.brand.count({ where })]);
   const editor = can(user, "editor");
   const edit = sp.bewerk ? await db.brand.findUnique({ where: { id: sp.bewerk } }) : null;

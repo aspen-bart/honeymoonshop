@@ -5,6 +5,7 @@ import { DeleteButton } from "@/components/admin/fields";
 import { Badge, Notice, PageHeader, btnSm, fmtDateTime } from "@/components/admin/ui";
 import { can, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import type { ContactMessage } from "@prisma/client";
 
 export const metadata = { title: "Berichten" };
@@ -14,7 +15,7 @@ export default async function MessagesAdmin({ searchParams }: { searchParams: Pr
   const sp = await searchParams;
   const params = readParams(sp, { sort: "createdAt" }, ["status"]);
   const where = {
-    ...(params.q ? { OR: [{ name: { contains: params.q } }, { email: { contains: params.q } }, { message: { contains: params.q } }, { subject: { contains: params.q } }] } : {}),
+    ...(params.q ? { OR: [{ name: like(params.q) }, { email: like(params.q) }, { message: like(params.q) }, { subject: like(params.q) }] } : {}),
     ...(params.filters.status ? { handled: params.filters.status === "afgehandeld" } : {}),
   };
   const orderBy = { [["createdAt", "name"].includes(params.sort) ? params.sort : "createdAt"]: params.dir };

@@ -3,6 +3,7 @@ import { DataTable, PER_PAGE, readParams, type Column } from "@/components/admin
 import { Badge, Notice, PageHeader, StatusBadge, fmtDate } from "@/components/admin/ui";
 import { can, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import type { Review } from "@prisma/client";
 
 export const metadata = { title: "Reviews" };
@@ -12,7 +13,7 @@ export default async function ReviewsAdmin({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const params = readParams(sp, { sort: "publishedAt" }, ["status", "uitgelicht"]);
   const where = {
-    ...(params.q ? { OR: [{ name: { contains: params.q } }, { path: { contains: params.q } }] } : {}),
+    ...(params.q ? { OR: [{ name: like(params.q) }, { path: like(params.q) }] } : {}),
     ...(params.filters.status ? { status: params.filters.status } : {}),
     ...(params.filters.uitgelicht ? { featured: params.filters.uitgelicht === "ja" } : {}),
   };

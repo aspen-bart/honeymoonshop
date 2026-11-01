@@ -4,6 +4,7 @@ import { SimpleForm } from "@/components/admin/SimpleForm";
 import { Field, PageHeader, Panel, btnSm, fmtDate, input } from "@/components/admin/ui";
 import { can, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import type { Redirect } from "@prisma/client";
 
 export const metadata = { title: "Redirects" };
@@ -11,7 +12,7 @@ export const metadata = { title: "Redirects" };
 export default async function RedirectsAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const user = await requireUser();
   const params = readParams(await searchParams, { sort: "createdAt" });
-  const where = params.q ? { OR: [{ from: { contains: params.q } }, { to: { contains: params.q } }] } : {};
+  const where = params.q ? { OR: [{ from: like(params.q) }, { to: like(params.q) }] } : {};
   const [rows, total] = await Promise.all([db.redirect.findMany({ where, orderBy: { [["from", "createdAt"].includes(params.sort) ? params.sort : "createdAt"]: params.dir }, skip: (params.page - 1) * PER_PAGE, take: PER_PAGE }), db.redirect.count({ where })]);
   const editor = can(user, "editor");
   const cols: Column<Redirect>[] = [

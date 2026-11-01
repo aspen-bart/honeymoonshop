@@ -6,6 +6,7 @@ import { SimpleForm } from "@/components/admin/SimpleForm";
 import { Notice, PageHeader, Panel, input } from "@/components/admin/ui";
 import { can, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 
 export const metadata = { title: "Media" };
 const PER = 48;
@@ -15,7 +16,7 @@ export default async function MediaAdmin({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const page = Math.max(1, Number(sp.pagina) || 1);
-  const where = { ...(q ? { OR: [{ path: { contains: q } }, { alt: { contains: q } }] } : {}), ...(sp.alt === "leeg" ? { alt: "" } : {}) };
+  const where = { ...(q ? { OR: [{ path: like(q) }, { alt: like(q) }] } : {}), ...(sp.alt === "leeg" ? { alt: "" } : {}) };
   const [items, total, missingAlt] = await Promise.all([db.media.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * PER, take: PER }), db.media.count({ where }), db.media.count({ where: { alt: "" } })]);
   const sel = sp.id ? await db.media.findUnique({ where: { id: sp.id } }) : null;
   const pages = Math.ceil(total / PER);

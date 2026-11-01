@@ -5,6 +5,7 @@ import { PostCard } from "@/components/site/blocks";
 import { ProductCard } from "@/components/site/ProductCard";
 import { JsonLd } from "@/components/site/JsonLd";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import { breadcrumbLd, buildMetadata, graph } from "@/lib/seo";
 
 // Zoekfunctie (ook gebruikt als SearchAction in de structured data). Zoekresultaten worden niet geïndexeerd.
@@ -12,7 +13,7 @@ export const metadata: Metadata = buildMetadata({ title: "Zoeken in trouwjurken,
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const q = ((await searchParams).q ?? "").trim().slice(0, 80);
-  const where = q ? { contains: q } : undefined;
+  const where = q ? like(q) : undefined;
   const [products, posts, pages] = q
     ? await Promise.all([
         db.product.findMany({ where: { status: "published", OR: [{ name: where }, { brand: { name: where } }, { articleNumber: where }] }, include: { brand: true }, take: 24, orderBy: { sortOrder: "asc" } }),

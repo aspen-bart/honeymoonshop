@@ -3,6 +3,7 @@ import { DataTable, PER_PAGE, readParams, type Column } from "@/components/admin
 import { Notice, PageHeader, StatusBadge, fmtDate } from "@/components/admin/ui";
 import { can, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import { images } from "@/lib/json";
 import type { Brand, Product } from "@prisma/client";
 
@@ -20,7 +21,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const params = readParams(sp, { sort: "updatedAt" }, ["soort", "status", "merk"]);
   const where = {
-    ...(params.q ? { OR: [{ name: { contains: params.q } }, { path: { contains: params.q } }, { articleNumber: { contains: params.q } }] } : {}),
+    ...(params.q ? { OR: [{ name: like(params.q) }, { path: like(params.q) }, { articleNumber: like(params.q) }] } : {}),
     ...(params.filters.soort ? { kind: params.filters.soort } : {}),
     ...(params.filters.status ? { status: params.filters.status } : {}),
     ...(params.filters.merk ? { brandId: params.filters.merk } : {}),

@@ -2,6 +2,7 @@ import { DataTable, PER_PAGE, readParams, type Column } from "@/components/admin
 import { Badge, PageHeader, fmtDateTime } from "@/components/admin/ui";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import type { AuditLog } from "@prisma/client";
 
 export const metadata = { title: "Logboek" };
@@ -10,7 +11,7 @@ export default async function AuditAdmin({ searchParams }: { searchParams: Promi
   await requireUser();
   const params = readParams(await searchParams, { sort: "createdAt" }, ["actie", "onderdeel"]);
   const where = {
-    ...(params.q ? { OR: [{ summary: { contains: params.q } }, { userName: { contains: params.q } }] } : {}),
+    ...(params.q ? { OR: [{ summary: like(params.q) }, { userName: like(params.q) }] } : {}),
     ...(params.filters.actie ? { action: params.filters.actie } : {}),
     ...(params.filters.onderdeel ? { entity: params.filters.onderdeel } : {}),
   };

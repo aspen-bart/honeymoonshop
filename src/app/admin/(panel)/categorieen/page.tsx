@@ -3,6 +3,7 @@ import { DataTable, PER_PAGE, readParams, type Column } from "@/components/admin
 import { Notice, PageHeader, StatusBadge } from "@/components/admin/ui";
 import { can, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import type { Category } from "@prisma/client";
 
 export const metadata = { title: "Categorieën" };
@@ -14,7 +15,7 @@ export default async function CategoriesAdmin({ searchParams }: { searchParams: 
   const user = await requireUser();
   const sp = await searchParams;
   const params = readParams(sp, { sort: "sortOrder", dir: "asc" }, ["soort"]);
-  const where = { ...(params.q ? { OR: [{ name: { contains: params.q } }, { path: { contains: params.q } }] } : {}), ...(params.filters.soort ? { kind: params.filters.soort } : {}) };
+  const where = { ...(params.q ? { OR: [{ name: like(params.q) }, { path: like(params.q) }] } : {}), ...(params.filters.soort ? { kind: params.filters.soort } : {}) };
   const orderBy = { [["name", "path", "sortOrder"].includes(params.sort) ? params.sort : "sortOrder"]: params.dir };
   const [rows, total] = await Promise.all([db.category.findMany({ where, include: { parent: true, _count: { select: { products: true } } }, orderBy, skip: (params.page - 1) * PER_PAGE, take: PER_PAGE }), db.category.count({ where })]);
   const cols: Column<Row>[] = [

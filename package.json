@@ -11,6 +11,7 @@
     "prisma": "node scripts/prisma.mjs",
     "db:push": "node scripts/prisma.mjs db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:export": "node scripts/export-db.mjs",
     "setup": "npm run db:push && npm run db:seed",
     "scrape": "node scripts/scrape.mjs",
     "images": "node scripts/download-images.mjs",

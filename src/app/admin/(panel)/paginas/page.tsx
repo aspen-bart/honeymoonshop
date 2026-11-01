@@ -3,6 +3,7 @@ import { DataTable, PER_PAGE, readParams, type Column } from "@/components/admin
 import { Badge, Notice, PageHeader, StatusBadge, fmtDate } from "@/components/admin/ui";
 import { can, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import type { Page } from "@prisma/client";
 
 export const metadata = { title: "Pagina's" };
@@ -14,7 +15,7 @@ export default async function PagesPage({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const params = readParams(sp, { sort: "path", dir: "asc" }, ["status", "template"]);
   const where = {
-    ...(params.q ? { OR: [{ title: { contains: params.q } }, { path: { contains: params.q } }] } : {}),
+    ...(params.q ? { OR: [{ title: like(params.q) }, { path: like(params.q) }] } : {}),
     ...(params.filters.status ? { status: params.filters.status } : {}),
     ...(params.filters.template ? { template: params.filters.template } : {}),
   };

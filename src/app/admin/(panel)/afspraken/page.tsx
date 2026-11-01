@@ -4,6 +4,7 @@ import { Badge, Notice, PageHeader, fmtDateTime } from "@/components/admin/ui";
 import { todayNl } from "@/lib/appointments";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { like } from "@/lib/search";
 import { getAppointmentSettings } from "@/lib/settings";
 import type { Appointment } from "@prisma/client";
 
@@ -17,7 +18,7 @@ export default async function AppointmentsAdmin({ searchParams }: { searchParams
   const params = readParams(sp, { sort: "date", dir: "asc" }, ["status", "soort", "periode"]);
   const today = todayNl();
   const where = {
-    ...(params.q ? { OR: [{ name: { contains: params.q } }, { email: { contains: params.q } }, { phone: { contains: params.q } }, { date: { contains: params.q } }] } : {}),
+    ...(params.q ? { OR: [{ name: like(params.q) }, { email: like(params.q) }, { phone: like(params.q) }, { date: like(params.q) }] } : {}),
     ...(params.filters.status ? { status: params.filters.status } : {}),
     ...(params.filters.soort ? { type: params.filters.soort } : {}),
     ...(params.filters.periode === "komend" ? { date: { gte: today } } : params.filters.periode === "verleden" ? { date: { lt: today } } : {}),
