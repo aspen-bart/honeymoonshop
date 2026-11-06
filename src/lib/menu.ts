@@ -6,8 +6,8 @@ export type MenuItem = { label: string; href: string; columns: MenuColumn[]; fea
 
 export const MAIN_MENU: MenuItem[] = [
   {
-    label: "Bruid",
-    href: "/trouwjurk-en-accessoires/",
+    label: "Trouwjurken",
+    href: "/trouwjurken/",
     columns: [
       {
         title: "Trouwjurken",
@@ -18,6 +18,7 @@ export const MAIN_MENU: MenuItem[] = [
           { label: "Big Sale", href: "/trouwjurken/big-sale/" },
           { label: "Big Bliss (plus size)", href: "/trouwjurken/big-bliss/" },
           { label: "Alle merken", href: "/trouwjurk-en-accessoires/onze-merken/" },
+          { label: "Alles voor de bruid", href: "/trouwjurk-en-accessoires/" },
         ],
       },
       {
@@ -46,8 +47,8 @@ export const MAIN_MENU: MenuItem[] = [
     feature: { title: "Bride to be", text: "Plan je pasafspraak met een eigen styliste.", href: "/afspraak-maken/trouwjurk-passen/", image: "/uploads/hfghfpj1kbqj6djbf7j6z_wyg37p7b_00001-rmasesg0hvjut681200bo5pijl5t30qy424tzi2jjk.webp", cta: "Trouwjurk passen" },
   },
   {
-    label: "Bruidegom",
-    href: "/bruidegom/",
+    label: "Trouwpakken",
+    href: "/pakken/",
     columns: [
       {
         title: "Trouwpakken",

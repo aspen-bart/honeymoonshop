@@ -9,7 +9,7 @@ import { can, type AdminUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { Post } from "@prisma/client";
 
-/** Gedeeld tussen /admin/blog/nieuw/ en /admin/blog/[id]/bewerken/. */
+/** Gedeeld tussen /admin/blogs/nieuw/ en /admin/blogs/[id]/bewerken/. */
 export async function BlogFormPage({ post, user, created }: { post: Post | null; user: AdminUser; created?: boolean }) {
   const cats = await db.blogCategory.findMany({ orderBy: { name: "asc" } });
   return (
@@ -42,6 +42,7 @@ export async function BlogFormPage({ post, user, created }: { post: Post | null;
           text: [{ name: "authorName", label: "Auteur", value: post?.authorName ?? "Team Honeymoon shop" }],
           metaTitle: post?.metaTitle,
           metaDescription: post?.metaDescription,
+          ogImage: post?.ogImage && post.ogImage !== post.heroImage ? post.ogImage : null,
         }}
         action={savePost.bind(null, post?.id ?? null)}
         aiAction={suggestMeta}

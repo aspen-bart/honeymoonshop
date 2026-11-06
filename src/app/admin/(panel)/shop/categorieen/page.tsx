@@ -25,7 +25,7 @@ export default async function CategoriesAdmin({ searchParams }: { searchParams: 
       sortable: true,
       render: (r) => (
         <div>
-          <Link href={`/admin/categorieen/${r.id}/bewerken/`} className="font-medium hover:underline">
+          <Link href={`/admin/shop/categorieen/${r.id}/bewerken/`} className="font-medium hover:underline">
             {r.name}
           </Link>
           {r.parent && <p className="text-xs text-ink-soft">in {r.parent.name}</p>}
@@ -42,7 +42,7 @@ export default async function CategoriesAdmin({ searchParams }: { searchParams: 
     <>
       <PageHeader title="Categorieën" description="Accessoirecategorieën (met tekst boven én onder de producten) en collecties van trouwjurken en trouwpakken." />
       {sp.verwijderd && <Notice>Categorie verwijderd.</Notice>}
-      <DataTable base="/admin/categorieen/" params={params} columns={cols} rows={rows} total={total} searchLabel="Zoek op naam of URL" filters={[{ name: "soort", label: "Soort", options: Object.entries(KIND).map(([value, label]) => ({ value, label })) }]} newHref={can(user, "editor") ? "/admin/categorieen/nieuw/" : undefined} newLabel="Nieuwe categorie" />
+      <DataTable base="/admin/shop/categorieen/" params={params} columns={cols} rows={rows} total={total} searchLabel="Zoek op naam of URL" filters={[{ name: "soort", label: "Soort", options: Object.entries(KIND).map(([value, label]) => ({ value, label })) }]} newHref={can(user, "editor") ? "/admin/shop/categorieen/nieuw/" : undefined} newLabel="Nieuwe categorie" />
     </>
   );
 }

@@ -15,7 +15,7 @@ export function FavoriteButton({ item, className = "", withLabel = false, iconCl
       }}
       aria-pressed={on}
       aria-label={on ? `${item.name} verwijderen uit favorieten` : `${item.name} bewaren als favoriet`}
-      className={`inline-flex items-center gap-2 transition ${className}`}
+      className={`inline-flex items-center justify-center gap-2 transition ${className}`}
     >
       <Icon name="heart" strokeWidth={1.8} className={`${iconClassName} transition ${on ? "scale-110 fill-lilac-700 text-lilac-700" : ""}`} />
       {withLabel && <span>{on ? "Bewaard als favoriet" : "Bewaar als favoriet"}</span>}

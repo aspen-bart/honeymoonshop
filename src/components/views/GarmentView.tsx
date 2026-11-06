@@ -3,18 +3,18 @@ import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { DragRail } from "@/components/site/DragRail";
-import { CtaBand, ReviewCard, SectionHead } from "@/components/site/blocks";
+import { CtaBand, SectionHead } from "@/components/site/blocks";
 import { FavoriteButton } from "@/components/site/FavoriteButton";
 import { Gallery } from "@/components/site/Gallery";
+import { GoogleReviews } from "@/components/site/GoogleReviews";
 import { Html } from "@/components/site/Html";
 import { JsonLd } from "@/components/site/JsonLd";
 import { ProductCard } from "@/components/site/ProductCard";
 import { TryOnButton } from "@/components/site/TryOn";
-import { FILTERS, featuredReviews, relatedGarments, type ProductFull } from "@/lib/content";
+import { FILTERS, relatedGarments, type ProductFull } from "@/lib/content";
 import { aiTryOnAvailable } from "@/lib/ai";
 import { attributes, images, parse, type TryOnSpot } from "@/lib/json";
 import { breadcrumbLd, describe, graph, productLd, type Crumb } from "@/lib/seo";
-import { getSite } from "@/lib/settings";
 
 export async function GarmentView({ product }: { product: ProductFull }) {
   const isDress = product.kind === "dress";
@@ -22,7 +22,7 @@ export async function GarmentView({ product }: { product: ProductFull }) {
   const crumbs: Crumb[] = [base, { name: product.name, path: product.path }];
   const imgs = images(product.images);
   const attrs = attributes(product.attributes);
-  const [related, reviews, site, ai] = await Promise.all([relatedGarments(product, 10), featuredReviews(3), getSite(), aiTryOnAvailable()]);
+  const [related, ai] = await Promise.all([relatedGarments(product, 10), aiTryOnAvailable()]);
   const apptHref = `/afspraak-maken/${isDress ? "trouwjurk-passen" : "trouwpak-passen"}/?product=${encodeURIComponent(product.path)}`;
   const groups = FILTERS[product.kind as "dress" | "suit"];
   const slugFor = (group: string, value: string) => groups.find((g) => g.name === group)?.terms.find((t) => t.name === value)?.slug;
@@ -170,16 +170,7 @@ export async function GarmentView({ product }: { product: ProductFull }) {
         </section>
       )}
 
-      {reviews.length > 0 && (
-        <section className="container-x py-16 lg:py-20">
-          <SectionHead eyebrow={`${site.googleRating.score} op Google`} title="Wat bruidsparen zeggen" />
-          <div className="grid gap-6 md:grid-cols-3">
-            {reviews.map((r) => (
-              <ReviewCard key={r.id} r={r} />
-            ))}
-          </div>
-        </section>
-      )}
+      <GoogleReviews focus={isDress ? "dress" : "suit"} tone="white" />
 
       <CtaBand title={`Verliefd op dit ${label}?`} text="Kom hem passen: plan je afspraak en we zetten hem alvast voor je klaar." primary={{ href: apptHref, label: "Plan je pasafspraak" }} />
       <JsonLd

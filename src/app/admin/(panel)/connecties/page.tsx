@@ -1,4 +1,5 @@
 import { saveAi, saveAiImage, saveGtm, testAiConnection, testAiImageConnection, testGtm } from "@/app/admin/actions/manage";
+import { saveGtmCode, savePulse, saveSparkpost, sendTestMail, testPulseConnection, testSparkpostConnection } from "@/app/admin/actions/extra";
 import { ActionButton, SimpleForm } from "@/components/admin/SimpleForm";
 import { Badge, Field, PageHeader, fmtDateTime, input } from "@/components/admin/ui";
 import { GTM_ID } from "@/components/site/Gtm";
@@ -7,6 +8,11 @@ import { requireUser } from "@/lib/auth";
 import { getConnections } from "@/lib/settings";
 
 export const metadata = { title: "Connecties" };
+
+const PULSE_EXAMPLE = `{ "source": "honeymoonshop-admin", "project": "…", "reference": "HMS-1001",
+  "subject": "…", "description": "…", "type": "bug", "priority": "hoog",
+  "status": "open", "url": "https://…", "attachments": ["https://…"],
+  "reporter": { "name": "…", "email": "…" }, "createdAt": "…" }`;
 
 function Status({ s }: { s: "actief" | "uit" | "niet ingesteld" | "fout" }) {
   return <Badge tone={s === "actief" ? "success" : s === "fout" ? "danger" : "neutral"}>{s}</Badge>;
@@ -19,12 +25,14 @@ export default async function ConnectionsAdmin() {
   const c = await getConnections();
   const gtmStatus = !c.gtm.containerId ? "niet ingesteld" : !GTM_ID.test(c.gtm.containerId) ? "fout" : c.gtm.enabled ? "actief" : "uit";
   const aiStatus = !c.ai.keyEnc ? "niet ingesteld" : c.ai.lastTest && !c.ai.lastTest.ok ? "fout" : c.ai.enabled ? "actief" : "uit";
+  const spStatus = !c.sparkpost.keyEnc ? "niet ingesteld" : c.sparkpost.lastTest && !c.sparkpost.lastTest.ok ? "fout" : c.sparkpost.enabled ? "actief" : "uit";
+  const pulseStatus = !c.pulse.url ? "niet ingesteld" : c.pulse.lastTest && !c.pulse.lastTest.ok ? "fout" : c.pulse.enabled ? "actief" : "uit";
   const aiImageStatus = !c.aiImage.keyEnc ? "niet ingesteld" : c.aiImage.lastTest && !c.aiImage.lastTest.ok ? "fout" : c.aiImage.enabled ? "actief" : "uit";
   return (
     <>
       <PageHeader title="Connecties" description="Koppelingen met externe diensten. API-sleutels worden versleuteld opgeslagen en alleen op de server gebruikt." />
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-line bg-white p-6">
+        <section id="gtm" className="rounded-2xl border border-line bg-white p-6 lg:col-span-2">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <h2 className="font-sans text-lg font-semibold">Google Tag Manager</h2>
@@ -32,7 +40,9 @@ export default async function ConnectionsAdmin() {
             </div>
             <Status s={gtmStatus} />
           </div>
-          <SimpleForm action={saveGtm}>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <SimpleForm action={saveGtm}>
             <Field label="Container-ID" hint="(formaat GTM-XXXXXXX)">
               <input name="containerId" defaultValue={c.gtm.containerId} placeholder="GTM-XXXXXXX" pattern="GTM-[A-Za-z0-9]{4,10}" className={`${input} font-mono uppercase`} />
             </Field>
@@ -42,6 +52,103 @@ export default async function ConnectionsAdmin() {
           </SimpleForm>
           <div className="mt-4 border-t border-line pt-4">
             <ActionButton action={testGtm} label="Verbinding testen" disabled={!c.gtm.containerId} />
+          </div>
+            </div>
+            <SimpleForm action={saveGtmCode} submitLabel="Code opslaan">
+              <Field label="Extra code in de <head>" hint="(tekstvak: bv. verificatie-metatags, pixels of scripts)">
+                <textarea name="headCode" defaultValue={c.gtm.headCode} rows={5} spellCheck={false} placeholder={"<meta name=\"…\" content=\"…\">"} className={`${input} font-mono text-xs`} />
+              </Field>
+              <Field label="Extra code direct na <body>" hint="(tekstvak: bv. noscript-fallbacks)">
+                <textarea name="bodyCode" defaultValue={c.gtm.bodyCode} rows={4} spellCheck={false} className={`${input} font-mono text-xs`} />
+              </Field>
+              <p className="text-xs text-ink-soft">Wordt alleen geladen als Tag Manager actief is. Zet trackingcode met cookies bij voorkeur in GTM zelf, dan respecteert die de cookiekeuze van de bezoeker.</p>
+            </SimpleForm>
+          </div>
+        </section>
+
+        <section id="sparkpost" className="rounded-2xl border border-line bg-white p-6">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="font-sans text-lg font-semibold">SparkPost (e-mail)</h2>
+              <p className="text-sm text-ink-soft">Verstuurt meldingen en bevestigingen van de formulieren. Instellen per formulier in <a href="/admin/formulieren/" className="underline">Formulieren</a>.</p>
+            </div>
+            <Status s={spStatus} />
+          </div>
+          <SimpleForm action={saveSparkpost}>
+            <Field label="API-sleutel" hint={c.sparkpost.keyHint ? `(opgeslagen: ${c.sparkpost.keyHint} — leeg laten = ongewijzigd)` : "(SparkPost → Configuration → API Keys, recht: Transmissions)"}>
+              <input name="apiKey" type="password" autoComplete="off" placeholder={c.sparkpost.keyHint || "API-sleutel"} className={`${input} font-mono`} />
+            </Field>
+            <Field label="Regio" hint="(EU-account = api.eu.sparkpost.com)">
+              <select name="region" defaultValue={c.sparkpost.region} className={input}>
+                <option value="eu">EU</option>
+                <option value="us">US</option>
+              </select>
+            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Afzender (e-mail)" hint="(geverifieerd domein)">
+                <input name="fromEmail" type="email" defaultValue={c.sparkpost.fromEmail} className={input} />
+              </Field>
+              <Field label="Afzendernaam">
+                <input name="fromName" defaultValue={c.sparkpost.fromName} className={input} />
+              </Field>
+            </div>
+            <Field label="Antwoordadres (reply-to)">
+              <input name="replyTo" type="email" defaultValue={c.sparkpost.replyTo} className={input} />
+            </Field>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="enabled" defaultChecked={c.sparkpost.enabled} /> Actief (formulieren versturen e-mail)
+            </label>
+          </SimpleForm>
+          <div className="mt-4 space-y-3 border-t border-line pt-4">
+            <ActionButton action={testSparkpostConnection} label="Verbinding testen" disabled={!c.sparkpost.keyEnc} />
+            {c.sparkpost.lastTest && (
+              <p className="text-xs text-ink-soft">
+                Laatste test {fmtDateTime(new Date(c.sparkpost.lastTest.at))}: {c.sparkpost.lastTest.ok ? "gelukt" : "mislukt"} — {c.sparkpost.lastTest.message}
+              </p>
+            )}
+            {c.sparkpost.keyEnc && (
+              <SimpleForm action={sendTestMail} submitLabel="Testmail sturen">
+                <Field label="Testmail naar">
+                  <input name="to" type="email" placeholder="jouw@e-mailadres.nl" className={input} />
+                </Field>
+              </SimpleForm>
+            )}
+          </div>
+        </section>
+
+        <section id="pulse" className="rounded-2xl border border-line bg-white p-6">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="font-sans text-lg font-semibold">Pulse (tickets)</h2>
+              <p className="text-sm text-ink-soft">Tickets uit <a href="/admin/tickets/" className="underline">Tickets</a> en de knop “Ticket melden” gaan als JSON naar Pulse.</p>
+            </div>
+            <Status s={pulseStatus} />
+          </div>
+          <SimpleForm action={savePulse}>
+            <Field label="Pulse-URL" hint="(endpoint of webhook voor nieuwe tickets)">
+              <input name="url" type="url" defaultValue={c.pulse.url} placeholder="https://…" className={`${input} font-mono text-xs`} />
+            </Field>
+            <Field label="API-sleutel / token" hint={c.pulse.keyHint ? `(opgeslagen: ${c.pulse.keyHint} — leeg laten = ongewijzigd)` : "(wordt meegestuurd als Bearer-token)"}>
+              <input name="apiKey" type="password" autoComplete="off" placeholder={c.pulse.keyHint || "token"} className={`${input} font-mono`} />
+            </Field>
+            <Field label="Project / klant-ID in Pulse" hint="(optioneel)">
+              <input name="projectId" defaultValue={c.pulse.projectId} className={input} />
+            </Field>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="enabled" defaultChecked={c.pulse.enabled} /> Actief (nieuwe tickets automatisch doorsturen)
+            </label>
+          </SimpleForm>
+          <div className="mt-4 space-y-2 border-t border-line pt-4">
+            <ActionButton action={testPulseConnection} label="Verbinding testen (testbericht)" disabled={!c.pulse.url} />
+            {c.pulse.lastTest && (
+              <p className="text-xs text-ink-soft">
+                Laatste test {fmtDateTime(new Date(c.pulse.lastTest.at))}: {c.pulse.lastTest.ok ? "gelukt" : "mislukt"} — {c.pulse.lastTest.message}
+              </p>
+            )}
+            <details className="text-xs text-ink-soft">
+              <summary className="cursor-pointer">Welke gegevens gaan naar Pulse?</summary>
+              <pre className="mt-2 overflow-x-auto rounded-lg bg-cream p-3">{PULSE_EXAMPLE}</pre>
+            </details>
           </div>
         </section>
 

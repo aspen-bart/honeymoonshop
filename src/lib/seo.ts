@@ -28,7 +28,9 @@ export function withBrand(title: string) {
 }
 
 export function describe(text: string | null | undefined, fallbackHtml?: string | null) {
-  const base = (text && text.trim()) || plain(fallbackHtml);
+  // WPBakery-shortcodes uit de oude site ([vc_title title="…"]) → alleen de tekst
+  const noCodes = (s: string) => s.replace(/\[vc_title[^\]]*?title=[”"“]([^”"“]+)[”"“][^\]]*\]/g, "$1. ").replace(/\[\/?(?:vc|av|et_pb)_[^\]]*\]/g, " ").replace(/\s+/g, " ").trim();
+  const base = noCodes((text && text.trim()) || plain(fallbackHtml));
   return clip(base.replace(/\.\.\.$/, "…"), 160);
 }
 

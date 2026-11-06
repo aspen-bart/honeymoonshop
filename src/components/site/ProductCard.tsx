@@ -24,7 +24,7 @@ export function ProductCard({ p, priority = false, sizes = "(max-width: 640px) 5
           {(p.priceText || p.price != null) && <p className="mt-1 text-sm text-ink-soft">{p.price != null ? euro(p.price) : `Prijsindicatie ${p.priceText!.replace(/^€?/, "€").replace(/ - (\d)/, " – €$1")}`}</p>}
         </div>
       </Link>
-      <FavoriteButton item={{ path: p.path, name: p.name, image: a?.src ?? null, kind: p.kind }} iconClassName="h-6 w-6" className="absolute right-3 top-3 grid h-11 w-11 place-items-center rounded-full bg-white/90 text-ink shadow-sm hover:bg-lilac" />
+      <FavoriteButton item={{ path: p.path, name: p.name, image: a?.src ?? null, kind: p.kind }} iconClassName="h-6 w-6" className="absolute right-3 top-3 h-11 w-11 rounded-full bg-white/90 text-ink shadow-sm hover:bg-lilac" />
     </article>
   );
 }

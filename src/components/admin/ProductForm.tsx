@@ -28,11 +28,24 @@ export type ProductData = {
   tryOn: { x: number; y: number; size: number } | null;
   metaTitle: string | null;
   metaDescription: string | null;
+  ogImage?: string | null;
 };
 
-export function ProductForm({ data, action, aiAction, aiEnabled, brands, categories, filters, readOnly }: { data: ProductData; action: (s: ActionResult, f: FormData) => Promise<ActionResult>; aiAction: (f: FormData) => Promise<{ text?: string; error?: string }>; aiEnabled: boolean; brands: Option[]; categories: Option[]; filters: Record<string, Group[]>; readOnly: boolean }) {
+const RESERVED = ["Prijs", "Merk", "Merken"];
+
+export function ProductForm({ data, action, aiAction, aiEnabled, brands, categories, filters, specFields, readOnly }: { data: ProductData; action: (s: ActionResult, f: FormData) => Promise<ActionResult>; aiAction: (f: FormData) => Promise<{ text?: string; error?: string }>; aiEnabled: boolean; brands: Option[]; categories: Option[]; filters: Record<string, Group[]>; specFields: Record<string, string[]>; readOnly: boolean }) {
   const [kind, setKind] = useState(data.kind);
-  const [attrs, setAttrs] = useState(data.attributes);
+  const filterNames = new Set([...Object.values(filters).flat().map((g) => g.name), ...RESERVED]);
+  // Kenmerken die geen filter zijn, zijn vrije specificaties (bv. Levertijd: 4-6 maanden)
+  const [attrs, setAttrs] = useState(Object.fromEntries(Object.entries(data.attributes).filter(([k]) => filterNames.has(k))));
+  const [specs, setSpecs] = useState<[string, string][]>(() => {
+    const own = Object.entries(data.attributes)
+      .filter(([k]) => !filterNames.has(k))
+      .map(([k, v]) => [k, v.join(", ")] as [string, string]);
+    const missing = (specFields[data.kind] ?? []).filter((f) => !own.some(([k]) => k === f)).map((f) => [f, ""] as [string, string]);
+    return [...own, ...missing];
+  });
+  const setSpec = (i: number, k: string, v: string) => setSpecs(specs.map((s, j) => (j === i ? [k, v] : s)));
   const [spot, setSpot] = useState(data.tryOn ?? { x: 50, y: 13, size: 15 });
   const groups = filters[kind] ?? [];
   const toggleAttr = (g: string, v: string) => setAttrs((a) => ({ ...a, [g]: a[g]?.includes(v) ? a[g].filter((x) => x !== v) : [...(a[g] ?? []), v] }));
@@ -165,6 +178,34 @@ export function ProductForm({ data, action, aiAction, aiEnabled, brands, categor
         </Panel>
       )}
 
+      <Panel title="Specificaties">
+        <input type="hidden" name="specs" value={JSON.stringify(Object.fromEntries(specs.filter(([k, v]) => k.trim() && v.trim())))} />
+        <div className="space-y-2">
+          {specs.map(([k, v], i) => (
+            <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] gap-2">
+              <input value={k} onChange={(e) => setSpec(i, e.target.value, v)} placeholder="Naam, bv. Levertijd" aria-label={`Naam specificatie ${i + 1}`} className={`${input} font-medium`} />
+              <input value={v} onChange={(e) => setSpec(i, k, e.target.value)} placeholder="Waarde, bv. 4-6 maanden" aria-label={`Waarde ${k || i + 1}`} className={input} />
+              <button type="button" onClick={() => setSpecs(specs.filter((_, j) => j !== i))} className="rounded-lg px-2 text-sm text-danger hover:bg-danger/10" aria-label={`${k || "Specificatie"} verwijderen`}>
+                ✕
+              </button>
+            </div>
+          ))}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <button type="button" onClick={() => setSpecs([...specs, ["", ""]])} className="rounded-full border border-line px-3 py-1.5 text-xs hover:border-ink">
+              + Specificatie toevoegen
+            </button>
+            {(specFields[kind] ?? [])
+              .filter((f) => !specs.some(([k]) => k === f))
+              .map((f) => (
+                <button key={f} type="button" onClick={() => setSpecs([...specs, [f, ""]])} className="rounded-full bg-cream px-3 py-1.5 text-xs hover:bg-cream-2">
+                  + {f}
+                </button>
+              ))}
+          </div>
+          <p className="text-xs text-ink-soft">Lege regels worden niet opgeslagen. Specificaties staan op de productpagina; vaste velden per soort beheer je bij Shop → Specificaties.</p>
+        </div>
+      </Panel>
+
       {kind !== "accessory" && firstImage && (
         <Panel title="Online passen: positie van het hoofd">
           <input type="hidden" name="tryOn" value={JSON.stringify(spot)} />
@@ -194,7 +235,7 @@ export function ProductForm({ data, action, aiAction, aiEnabled, brands, categor
       )}
 
       <Panel title="Zoekmachines (SEO)">
-        <SeoFields metaTitle={data.metaTitle} metaDescription={data.metaDescription} aiAction={aiAction} aiEnabled={aiEnabled} />
+        <SeoFields metaTitle={data.metaTitle} metaDescription={data.metaDescription} aiAction={aiAction} aiEnabled={aiEnabled} ogImage={data.ogImage ?? null} showOg path={data.path} />
       </Panel>
     </AdminForm>
   );

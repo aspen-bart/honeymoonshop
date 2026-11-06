@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { CtaBand, FaqList, Marquee, PostCard, ReviewCard, SectionHead } from "@/components/site/blocks";
+import { GoogleReviews } from "@/components/site/GoogleReviews";
 import { Html } from "@/components/site/Html";
 import { JsonLd } from "@/components/site/JsonLd";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -281,6 +282,9 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* 7b. Google-reviews */}
+      <GoogleReviews tone="white" />
 
       {/* 8. Bruidegom */}
       <section className="on-dark bg-petrol py-20 text-white lg:py-28">

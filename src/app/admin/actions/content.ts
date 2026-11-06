@@ -48,6 +48,13 @@ export async function saveProduct(id: string | null, _: ActionResult, form: Form
     if (await pathTaken(path, id ? { table: "product", id } : undefined)) return fail("Dit URL-pad is al in gebruik.", { path: "Bestaat al" });
     const old = id ? await db.product.findUnique({ where: { id }, select: { path: true } }) : null;
     const attributes = parseJson<Record<string, string[]>>(str(form, "attributes"), {});
+    // vrije specificaties (Levertijd, Maten, …) komen als { naam: "waarde" } en worden ook als kenmerk bewaard
+    if (form.has("specs")) {
+      const old = id ? await db.product.findUnique({ where: { id }, select: { attributes: true } }) : null;
+      const prev = parseJson<Record<string, string[]>>(old?.attributes ?? "{}", {});
+      for (const k of ["Prijs", "Merk", "Merken"]) if (prev[k] && !attributes[k]) attributes[k] = prev[k];
+      for (const [k, v] of Object.entries(parseJson<Record<string, string>>(str(form, "specs"), {}))) if (k.trim() && v.trim()) attributes[k.trim().slice(0, 40)] = v.split(/\s*,\s*/).filter(Boolean).slice(0, 20);
+    }
     const data = {
       kind,
       path,
@@ -70,6 +77,7 @@ export async function saveProduct(id: string | null, _: ActionResult, form: Form
       tryOn: str(form, "tryOn") || null,
       metaTitle: opt(form, "metaTitle"),
       metaDescription: opt(form, "metaDescription"),
+      ogImage: opt(form, "ogImage"),
       categories: { set: form.getAll("categoryIds").map((c) => ({ id: String(c) })) },
     };
     if (id) {
@@ -80,7 +88,7 @@ export async function saveProduct(id: string | null, _: ActionResult, form: Form
       const created = await db.product.create({ data: { ...data, categories: { connect: data.categories.set } } });
       await audit(user, "aangemaakt", "Product", created.id, `${name} aangemaakt`);
       refresh(path, base);
-      redirect(`/admin/producten/${created.id}/bewerken/?nieuw=1`);
+      redirect(`/admin/shop/producten/${created.id}/bewerken/?nieuw=1`);
     }
     refresh(path, old?.path, base);
     return { ok: true, message: "Opgeslagen." };
@@ -95,7 +103,7 @@ export async function deleteProduct(id: string) {
   const p = await db.product.delete({ where: { id } });
   await audit(user, "verwijderd", "Product", id, `${p.name} verwijderd`);
   refresh(p.path);
-  redirect("/admin/producten/?verwijderd=1");
+  redirect("/admin/shop/producten/?verwijderd=1");
 }
 
 // ---------- categorieën ----------
@@ -129,7 +137,7 @@ export async function saveCategory(id: string | null, _: ActionResult, form: For
       const c = await db.category.create({ data });
       await audit(user, "aangemaakt", "Categorie", c.id, `${name} aangemaakt`);
       refresh(path);
-      redirect(`/admin/categorieen/${c.id}/bewerken/?nieuw=1`);
+      redirect(`/admin/shop/categorieen/${c.id}/bewerken/?nieuw=1`);
     }
     refresh(path, old?.path);
     return { ok: true, message: "Opgeslagen." };
@@ -144,7 +152,7 @@ export async function deleteCategory(id: string) {
   const c = await db.category.delete({ where: { id } });
   await audit(user, "verwijderd", "Categorie", id, `${c.name} verwijderd`);
   refresh(c.path);
-  redirect("/admin/categorieen/?verwijderd=1");
+  redirect("/admin/shop/categorieen/?verwijderd=1");
 }
 
 // ---------- merken ----------
@@ -171,7 +179,7 @@ export async function deleteBrand(id: string) {
   const b = await db.brand.delete({ where: { id } });
   await audit(user, "verwijderd", "Merk", id, `Merk ${b.name} verwijderd`);
   refresh();
-  redirect("/admin/merken/?verwijderd=1");
+  redirect("/admin/shop/merken/?verwijderd=1");
 }
 
 // ---------- pagina's ----------
@@ -200,7 +208,7 @@ export async function savePage(id: string | null, _: ActionResult, form: FormDat
       noindex: bool(form, "noindex"),
       metaTitle: opt(form, "metaTitle"),
       metaDescription: opt(form, "metaDescription"),
-      ogImage: opt(form, "heroImage"),
+      ogImage: form.has("ogImage") ? opt(form, "ogImage") : opt(form, "heroImage"),
       publishedAt: str(form, "publishedAt") ? new Date(str(form, "publishedAt")) : (old?.publishedAt ?? new Date()),
     };
     if (old?.path === "/" && path !== "/") return fail("Het pad van de homepage kan niet worden gewijzigd.");
@@ -257,7 +265,7 @@ export async function savePost(id: string | null, _: ActionResult, form: FormDat
       status: statusOf(form),
       metaTitle: opt(form, "metaTitle"),
       metaDescription: opt(form, "metaDescription"),
-      ogImage: opt(form, "heroImage"),
+      ogImage: form.has("ogImage") ? opt(form, "ogImage") : opt(form, "heroImage"),
       publishedAt: str(form, "publishedAt") ? new Date(str(form, "publishedAt")) : new Date(),
     };
     if (id) {
@@ -268,7 +276,7 @@ export async function savePost(id: string | null, _: ActionResult, form: FormDat
       const p = await db.post.create({ data });
       await audit(user, "aangemaakt", "Blog", p.id, `${title} aangemaakt`);
       refresh(path, "/blog/");
-      redirect(`/admin/blog/${p.id}/bewerken/?nieuw=1`);
+      redirect(`/admin/blogs/${p.id}/bewerken/?nieuw=1`);
     }
     refresh(path, old?.path, "/blog/");
     return { ok: true, message: "Opgeslagen." };
@@ -283,7 +291,7 @@ export async function deletePost(id: string) {
   const p = await db.post.delete({ where: { id } });
   await audit(user, "verwijderd", "Blog", id, `${p.title} verwijderd`);
   refresh(p.path, "/blog/");
-  redirect("/admin/blog/?verwijderd=1");
+  redirect("/admin/blogs/?verwijderd=1");
 }
 
 // ---------- reviews ----------

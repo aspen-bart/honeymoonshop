@@ -33,6 +33,12 @@ export async function middleware(req: NextRequest) {
       url.pathname = `${pathname}/`;
       return NextResponse.redirect(url, 301);
     }
+    // Verhuisde beheerpagina's (oude bladwijzers blijven werken)
+    const moved = /^\/admin\/(blog|producten|categorieen|merken)\//.exec(pathname);
+    if (moved) {
+      url.pathname = pathname.replace(/^\/admin\/(blog|producten|categorieen|merken)\//, (_, p: string) => (p === "blog" ? "/admin/blogs/" : `/admin/shop/${p}/`));
+      return NextResponse.redirect(url, 301);
+    }
     if (pathname.startsWith("/admin/login/")) return NextResponse.next();
     const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
     if (!session) {

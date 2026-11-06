@@ -35,11 +35,82 @@ function fixInternal(href: string, redirects: Map<string, string>) {
   return h;
 }
 
+const plainText = (s: string) => s.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+const slug = (s: string) =>
+  plainText(s)
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+/** Overgebleven WPBakery-shortcodes uit de oude site ([vc_row], [vc_title …]) opruimen. */
+function cleanLegacy(html: string) {
+  return html
+    .replace(/\[vc_title[^\]]*?title=[”"“]([^”"“]+)[”"“][^\]]*?(?:resttitle=[”"“]([^”"“]+)[”"“])?[^\]]*\]/g, (_, t: string, rest?: string) => `<h2>${t}</h2>${rest ? `<p><strong>${rest}</strong></p>` : ""}`)
+    .replace(/\[\/?(?:vc|av|et_pb)_[^\]]*\]/g, "")
+    .replace(/<p>\s*<\/p>/g, "");
+}
+
+/** Koppen zonder inhoud (bv. een slider die niet meer bestaat) weglaten: kop direct gevolgd door een even hoge of hogere kop. */
+function dropEmptyHeadings(html: string) {
+  let prev = "";
+  let out = html;
+  while (out !== prev) {
+    prev = out;
+    out = out.replace(/<(h([2-4]))>((?:(?!<\/h[2-4]>)[\s\S])*?)<\/h[2-4]>\s*(?=<h([2-4])[\s>]|$)/g, (all, _tag, level: string, _inner, next?: string) => (!next || Number(next) <= Number(level) ? "" : all));
+  }
+  return out;
+}
+
+const STEP_TITLE = /(hoe verloopt|stappenplan|in \d+ stappen|zo werkt het|werkwijze)/i;
+
+/** Een stappenplan (H2 met drie of meer H3 + tekst eronder) wordt een genummerde tijdlijn met golvende lijn. */
+// inhoud van één stap: alinea's, lijsten, figuren en afbeeldingen
+const STEP_BODY = String.raw`(?:(?:<(?:p|ul|ol|figure|blockquote)>[\s\S]*?<\/(?:p|ul|ol|figure|blockquote)>|<img [^>]*>)\s*)+`;
+
+function stepsBlocks(html: string) {
+  return html.replace(new RegExp(String.raw`<h2>([^<]*)<\/h2>((?:\s*<h3>[\s\S]*?<\/h3>\s*${STEP_BODY}){3,})`, "g"), (all, title: string, body: string) => {
+    if (!STEP_TITLE.test(title)) return all;
+    const steps = [...body.matchAll(new RegExp(String.raw`<h3>([\s\S]*?)<\/h3>\s*(${STEP_BODY})`, "g"))];
+    // "#1 Stem de stijl…" → "Stem de stijl…": het nummer staat al in het rondje
+    const items = steps.map((m, i) => `<li class="step"><span class="step-num" aria-hidden="true">${i + 1}</span><div class="step-body"><p class="step-label">Stap ${i + 1}</p><h3>${plainText(m[1]).replace(/^(#|stap\s*)?\d+[.:)]?\s+/i, "")}</h3>${m[2].trim()}</div></li>`);
+    return `<h2>${title}</h2><ol class="steps">${items.join("")}</ol>`;
+  });
+}
+
+/** Elke H2 krijgt een id, zodat je ernaartoe kunt linken (inhoudsopgave FAQ-pagina). */
+function anchorHeadings(html: string) {
+  const used = new Map<string, number>();
+  return html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_, inner: string) => {
+    let id = slug(inner) || "sectie";
+    const n = used.get(id) ?? 0;
+    used.set(id, n + 1);
+    if (n) id = `${id}-${n + 1}`;
+    return `<h2 id="${id}">${inner}</h2>`;
+  });
+}
+
+/** Inhoudelijke bewerkingen (zonder database): opruimen, stappenplannen en ankers. */
+export function prepareHtml(html: string) {
+  return anchorHeadings(stepsBlocks(dropEmptyHeadings(cleanLegacy(html))));
+}
+
+/** H2's met hun anker, voor een inhoudsopgave. */
+export function headingsOf(html: string) {
+  return [...prepareHtml(html).matchAll(/<h2 id="([^"]+)">([\s\S]*?)<\/h2>/g)].map((m) => ({ id: m[1], text: plainText(m[2]) }));
+}
+
+/** Haalt een FAQ-blok (kop "Veelgestelde vragen" + uitklapvragen) uit de tekst, voor pagina's die de FAQ apart tonen. */
+export function withoutFaqSection(html: string) {
+  return html.replace(/<h2>\s*(?:veelgestelde vragen|faq)[^<]*<\/h2>\s*(?:<details>[\s\S]*?<\/details>\s*)+/gi, "");
+}
+
 export async function renderHtml(html: string | null | undefined, opts: { eagerFirstImage?: boolean } = {}) {
   if (!html) return "";
   const [sizes, redirects] = await Promise.all([mediaSizes(), redirectMap()]);
   let first = true;
-  return html
+  return prepareHtml(html)
     .replace(/<a ([^>]*?)href="([^"]+)"([^>]*)>([\s\S]*?)<\/a>/g, (all, pre: string, href: string, post: string, inner: string) => {
       if (href.startsWith("/")) return `<a ${pre}href="${fixInternal(href, redirects)}"${post}>${inner}</a>`;
       if (/^https?:\/\//i.test(href)) {

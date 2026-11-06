@@ -9,7 +9,7 @@ import { JsonLd } from "@/components/site/JsonLd";
 import { ProductCard } from "@/components/site/ProductCard";
 import { accessoryRoots, type ProductFull } from "@/lib/content";
 import { db } from "@/lib/db";
-import { images } from "@/lib/json";
+import { attributes, images } from "@/lib/json";
 import { breadcrumbLd, describe, graph, itemListLd, productLd, type Crumb } from "@/lib/seo";
 import { euro } from "@/lib/text";
 import type { Category } from "@prisma/client";
@@ -122,6 +122,16 @@ export async function AccessoryView({ product }: { product: ProductFull }) {
           <h1 className="mt-3 text-5xl sm:text-6xl">{product.name}</h1>
           {product.price != null && <p className="mt-4 font-serif text-3xl">{euro(product.price)}</p>}
           <Html html={product.descriptionHtml} className="mt-6" />
+          {Object.keys(attributes(product.attributes)).length > 0 && (
+            <dl className="mt-8 divide-y divide-line border-y border-line">
+              {Object.entries(attributes(product.attributes)).map(([k, v]) => (
+                <div key={k} className="grid grid-cols-[130px_1fr] gap-4 py-3 text-[0.95rem]">
+                  <dt className="text-ink-soft">{k}</dt>
+                  <dd>{v.join(', ')}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
           <div className="mt-6 rounded-2xl bg-lilac-100 p-5 text-[0.95rem]">
             <p className="flex items-center gap-2 font-medium">
               <Icon name="info" className="h-5 w-5 text-lilac-700" /> Verkrijgbaar in onze winkel

@@ -203,6 +203,48 @@
   .prose-hms details[open] summary::after {
     transform: rotate(45deg);
   }
+  /* Stappenplan: genummerde stappen verbonden door een golvende lijn */
+  .prose-hms ol.steps {
+    @apply relative my-10 list-none space-y-10 pl-0;
+  }
+  .prose-hms ol.steps::before {
+    content: "";
+    position: absolute;
+    left: 1.75rem;
+    top: 3.5rem;
+    bottom: 3.5rem;
+    width: 24px;
+    transform: translateX(-50%);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='48' viewBox='0 0 24 48'%3E%3Cpath d='M12 0 C 23 12 23 12 12 24 C 1 36 1 36 12 48' fill='none' stroke='%239a88d0' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") repeat-y center top / 24px 48px;
+  }
+  .prose-hms ol.steps > li.step {
+    @apply relative m-0 grid grid-cols-[3.5rem_1fr] items-start gap-5 sm:gap-7;
+  }
+  .prose-hms ol.steps > li.step + li.step {
+    margin-top: 2.5rem;
+  }
+  .prose-hms ol.steps > li.step::marker {
+    content: "";
+  }
+  .prose-hms .step-num {
+    @apply relative z-10 grid h-14 w-14 place-items-center rounded-full bg-ink font-serif text-2xl text-white shadow-[0_0_0_8px_var(--color-cream)];
+  }
+  .prose-hms .step-body {
+    @apply rounded-[1.5rem] rounded-tr-[3rem] border border-line bg-white px-6 py-5 shadow-[0_18px_40px_-32px_rgba(43,40,67,0.45)];
+  }
+  .prose-hms .step-body > * + * {
+    margin-top: 0.5em;
+  }
+  .prose-hms .step-label {
+    @apply eyebrow text-lilac-700;
+  }
+  .prose-hms .step-body h3 {
+    @apply mt-1 mb-0 text-2xl sm:text-3xl;
+  }
+  .prose-hms h2[id] {
+    scroll-margin-top: 7rem;
+  }
+
   .prose-hms iframe {
     @apply aspect-video h-auto w-full rounded-2xl;
   }

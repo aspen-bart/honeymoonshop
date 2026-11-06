@@ -53,6 +53,7 @@ export default async function EditPage({ params, searchParams }: { params: Promi
           noindex: p.noindex,
           metaTitle: p.metaTitle,
           metaDescription: p.metaDescription,
+          ogImage: p.ogImage && p.ogImage !== p.heroImage ? p.ogImage : null,
         }}
         action={savePage.bind(null, p.id)}
         aiAction={suggestMeta}

@@ -83,7 +83,7 @@ function SetterBridge({ name, onSet }: { name: string; onSet: (v: string) => voi
 }
 
 /** SEO-blok: meta-title, meta-description (met AI-voorstel) en uitgelichte afbeelding. */
-export function SeoFields({ metaTitle, metaDescription, aiAction, aiEnabled }: { metaTitle?: string | null; metaDescription?: string | null; aiAction?: (fd: FormData) => Promise<{ text?: string; error?: string }>; aiEnabled?: boolean }) {
+export function SeoFields({ metaTitle, metaDescription, aiAction, aiEnabled, ogImage, showOg, path }: { metaTitle?: string | null; metaDescription?: string | null; aiAction?: (fd: FormData) => Promise<{ text?: string; error?: string }>; aiEnabled?: boolean; ogImage?: string | null; showOg?: boolean; path?: string }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -114,6 +114,75 @@ export function SeoFields({ metaTitle, metaDescription, aiAction, aiEnabled }: {
         </div>
         <CountedInput name="metaDescription" defaultValue={metaDescription} min={140} max={160} textarea placeholder="Leeg = automatisch uit de tekst" />
         {err && <ErrorText text={err} />}
+      </div>
+      {showOg && <ImageField name="ogImage" value={ogImage} label="Deel-afbeelding (voorvertoning op WhatsApp, Facebook en LinkedIn) — leeg = uitgelichte afbeelding" />}
+      <SnippetPreview path={path} />
+    </div>
+  );
+}
+
+const plainText = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+const cut = (t: string, n: number) => (t.length > n ? `${t.slice(0, n - 1).replace(/\s+\S*$/, "")}…` : t);
+
+/** Live voorvertoning: zo ziet de pagina eruit in Google en als hij gedeeld wordt. Leest de velden van het formulier. */
+export function SnippetPreview({ path }: { path?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [v, setV] = useState({ title: "", desc: "", image: "", url: "" });
+  useEffect(() => {
+    const form = ref.current?.closest("form");
+    if (!form) return;
+    const read = () => {
+      const fd = new FormData(form);
+      const get = (k: string) => String(fd.get(k) ?? "").trim();
+      const name = get("title") || get("name");
+      const title = get("metaTitle") || (name ? `${name} | Honeymoon shop` : "Titel van de pagina | Honeymoon shop");
+      const desc = get("metaDescription") || cut(plainText(get("excerpt") || get("html") || get("descriptionHtml") || get("introHtml")), 158);
+      let image = get("ogImage") || get("heroImage") || get("image");
+      if (!image) {
+        try {
+          image = (JSON.parse(get("images") || "[]") as { src: string }[])[0]?.src ?? "";
+        } catch {
+          image = "";
+        }
+      }
+      const p = get("path") || (get("slug") ? `/blog/${get("slug")}/` : path) || "/";
+      setV({ title, desc, image, url: `www.honeymoonshop.nl${p.replace(/\/$/, "").replace(/\//g, " › ")}` });
+    };
+    read();
+    form.addEventListener("input", read);
+    form.addEventListener("change", read);
+    const t = setInterval(read, 1500); // ook wijzigingen via de mediakiezer en de editor oppikken
+    return () => {
+      form.removeEventListener("input", read);
+      form.removeEventListener("change", read);
+      clearInterval(t);
+    };
+  }, [path]);
+  return (
+    <div ref={ref} className="grid gap-4 border-t border-line pt-4 lg:grid-cols-2">
+      <div>
+        <p className="mb-2 text-xs font-medium text-ink-soft">Voorvertoning in Google</p>
+        <div className="rounded-xl border border-line bg-white p-4 font-[arial,sans-serif]">
+          <p className="truncate text-xs text-[#4d5156]">{v.url}</p>
+          <p className="mt-1 line-clamp-1 text-lg leading-snug text-[#1a0dab]">{cut(v.title, 62)}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-[#4d5156]">{v.desc || "Vul een meta-description in of schrijf eerst tekst."}</p>
+        </div>
+      </div>
+      <div>
+        <p className="mb-2 text-xs font-medium text-ink-soft">Voorvertoning bij delen</p>
+        <div className="overflow-hidden rounded-xl border border-line bg-[#f0f2f5]">
+          {v.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={v.image} alt="" className="aspect-[1.91/1] w-full object-cover" />
+          ) : (
+            <div className="grid aspect-[1.91/1] place-items-center bg-cream text-xs text-ink-soft">Standaardafbeelding van de site</div>
+          )}
+          <div className="p-3">
+            <p className="text-[0.7rem] uppercase text-[#65676b]">honeymoonshop.nl</p>
+            <p className="line-clamp-1 text-sm font-semibold text-[#050505]">{v.title}</p>
+            <p className="line-clamp-1 text-xs text-[#65676b]">{v.desc}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -306,21 +375,30 @@ export function RichText({ name, value, minHeight = 320 }: { name: string; value
     const s = window.getSelection();
     if (s && s.rangeCount) savedRange.current = s.getRangeAt(0);
   };
-  const tools: [string, string, () => void][] = [
+  const insert = (h: string) => cmd("insertHTML", h);
+  const tools: ([string, string, () => void] | "|")[] = [
     ["H2", "Kop 2", () => cmd("formatBlock", "h2")],
     ["H3", "Kop 3", () => cmd("formatBlock", "h3")],
+    ["H4", "Kop 4", () => cmd("formatBlock", "h4")],
     ["¶", "Alinea", () => cmd("formatBlock", "p")],
+    "|",
     ["B", "Vet", () => cmd("bold")],
     ["I", "Cursief", () => cmd("italic")],
+    ["U", "Onderstrepen", () => cmd("underline")],
+    ["x²", "Superscript", () => cmd("superscript")],
+    ["⌫ opmaak", "Opmaak wissen", () => cmd("removeFormat")],
+    "|",
     ["• Lijst", "Opsomming", () => cmd("insertUnorderedList")],
     ["1. Lijst", "Genummerde lijst", () => cmd("insertOrderedList")],
     ["❝", "Citaat", () => cmd("formatBlock", "blockquote")],
+    ["―", "Scheidingslijn", () => insert("<hr><p><br></p>")],
+    "|",
     [
       "Link",
       "Link toevoegen",
       () => {
         const url = window.prompt("Link (bijv. /trouwjurken/ of https://…)");
-        if (url) cmd("createLink", url);
+        if (url) cmd("createLink", url.trim());
       },
     ],
     ["Unlink", "Link verwijderen", () => cmd("unlink")],
@@ -332,25 +410,73 @@ export function RichText({ name, value, minHeight = 320 }: { name: string; value
         setPicker(true);
       },
     ],
+    [
+      "Video",
+      "YouTube-video invoegen",
+      () => {
+        const url = window.prompt("YouTube-link (bijv. https://www.youtube.com/watch?v=…)");
+        const id = url && /(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/.exec(url)?.[1];
+        if (id) insert(`<iframe src="https://www.youtube-nocookie.com/embed/${id}" title="Video" allowfullscreen></iframe><p><br></p>`);
+        else if (url) window.alert("Dat lijkt geen YouTube-link.");
+      },
+    ],
+    [
+      "Tabel",
+      "Tabel invoegen",
+      () => {
+        const n = Math.min(8, Math.max(2, Number(window.prompt("Aantal kolommen?", "2")) || 2));
+        const cells = (tag: string) => `<tr>${Array.from({ length: n }, () => `<${tag}>${tag === "th" ? "Kop" : "&nbsp;"}</${tag}>`).join("")}</tr>`;
+        insert(`<table><thead>${cells("th")}</thead><tbody>${cells("td")}${cells("td")}</tbody></table><p><br></p>`);
+      },
+    ],
+    ["FAQ", "Uitklapvraag (FAQ) invoegen", () => insert("<details><summary>Vraag?</summary><p>Antwoord.</p></details><p><br></p>")],
+    "|",
     ["↶", "Ongedaan maken", () => cmd("undo")],
+    ["↷", "Opnieuw", () => cmd("redo")],
   ];
+  // Plakken uit Word/Google Docs/websites: alleen inhoud, geen kleuren, lettertypes of stijlen
+  const onPaste = (e: React.ClipboardEvent) => {
+    const htmlData = e.clipboardData.getData("text/html");
+    if (!htmlData) return;
+    e.preventDefault();
+    const doc = new DOMParser().parseFromString(htmlData, "text/html");
+    doc.querySelectorAll("script,style,meta,link,o\\:p").forEach((n) => n.remove());
+    doc.body.querySelectorAll("*").forEach((n) => {
+      for (const a of Array.from(n.attributes)) if (!["href", "src", "alt"].includes(a.name)) n.removeAttribute(a.name);
+    });
+    doc.body.querySelectorAll("span,font").forEach((n) => n.replaceWith(...Array.from(n.childNodes)));
+    document.execCommand("insertHTML", false, doc.body.innerHTML);
+    sync();
+  };
+  const [full, setFull] = useState(false);
+  const words = html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
   return (
-    <div className="rounded-xl border border-line bg-white focus-within:border-lilac-700">
-      <div className="flex flex-wrap gap-1 border-b border-line p-2" role="toolbar" aria-label="Opmaak">
-        {tools.map(([l, t, f]) => (
-          <button key={t} type="button" title={t} aria-label={t} onMouseDown={(e) => e.preventDefault()} onClick={f} disabled={source} className="rounded-md px-2.5 py-1 text-xs font-medium hover:bg-cream disabled:opacity-40">
-            {l}
+    <div className={`flex flex-col rounded-xl border border-line bg-white focus-within:border-lilac-700 ${full ? "fixed inset-3 z-[70] shadow-2xl" : ""}`}>
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-t-xl border-b border-line bg-white p-2" role="toolbar" aria-label="Opmaak">
+        {tools.map((t, i) =>
+          t === "|" ? (
+            <span key={i} className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
+          ) : (
+            <button key={t[1]} type="button" title={t[1]} aria-label={t[1]} onMouseDown={(e) => e.preventDefault()} onClick={t[2]} disabled={source} className="rounded-md px-2.5 py-1 text-xs font-medium hover:bg-cream disabled:opacity-40">
+              {t[0]}
+            </button>
+          ),
+        )}
+        <span className="ml-auto flex items-center gap-1">
+          <button type="button" onClick={() => setSource(!source)} className="rounded-md px-2.5 py-1 text-xs font-medium hover:bg-cream">
+            {source ? "Visueel" : "HTML"}
           </button>
-        ))}
-        <button type="button" onClick={() => setSource(!source)} className="ml-auto rounded-md px-2.5 py-1 text-xs font-medium hover:bg-cream">
-          {source ? "Visueel" : "HTML"}
-        </button>
+          <button type="button" onClick={() => setFull(!full)} className="rounded-md px-2.5 py-1 text-xs font-medium hover:bg-cream" aria-pressed={full}>
+            {full ? "Verkleinen" : "Volledig scherm"}
+          </button>
+        </span>
       </div>
       {source ? (
-        <textarea value={html} onChange={(e) => setHtml(e.target.value)} className="block w-full p-4 font-mono text-xs outline-none" style={{ minHeight }} aria-label="HTML-bron" />
+        <textarea value={html} onChange={(e) => setHtml(e.target.value)} className="block w-full flex-1 p-4 font-mono text-xs outline-none" style={{ minHeight }} aria-label="HTML-bron" />
       ) : (
-        <div ref={ref} contentEditable suppressContentEditableWarning onInput={sync} onBlur={sync} className="prose-hms max-w-none p-4 outline-none" style={{ minHeight }} role="textbox" aria-multiline="true" aria-label="Tekst" />
+        <div ref={ref} contentEditable suppressContentEditableWarning onInput={sync} onBlur={sync} onPaste={onPaste} className={`prose-hms max-w-none flex-1 p-4 outline-none overflow-y-auto ${full ? "" : "max-h-[70vh]"}`} style={{ minHeight }} role="textbox" aria-multiline="true" aria-label="Tekst" />
       )}
+      <p className="border-t border-line px-4 py-1.5 text-right text-[0.7rem] text-ink-soft">{words} woorden · ca. {Math.max(1, Math.round(words / 220))} min. leestijd</p>
       <input type="hidden" name={name} value={html} />
       {picker && (
         <MediaPicker

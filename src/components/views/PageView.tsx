@@ -3,11 +3,14 @@ import { Icon } from "@/components/Icon";
 import { AppointmentWizard } from "@/components/site/AppointmentWizard";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { CtaBand, FaqList, PageHero } from "@/components/site/blocks";
+import { FaqTools } from "@/components/site/FaqTools";
 import { ContactForm, FavoritesList, LookBookForm, StoryForm } from "@/components/site/Forms";
+import { GoogleReviews } from "@/components/site/GoogleReviews";
 import { Html } from "@/components/site/Html";
 import { JsonLd } from "@/components/site/JsonLd";
 import { window as apptWindow } from "@/lib/appointments";
 import { crumbsFor } from "@/lib/crumbs";
+import { prepareHtml } from "@/lib/html";
 import { db } from "@/lib/db";
 import { faqs, parse } from "@/lib/json";
 import { breadcrumbLd, faqLd, graph, storeLd } from "@/lib/seo";
@@ -66,6 +69,7 @@ export async function PageView({ page }: { page: Page }) {
             <Html html={page.html} className="mx-auto max-w-3xl" />
           </section>
         )}
+        <GoogleReviews title="Zo ervaren bruidsparen hun pasafspraak" focus={data.type === "trouwpak" ? "suit" : data.type === "trouwjurk" ? "dress" : undefined} tone="white" />
         <section className="container-x grid gap-8 pb-16 md:grid-cols-3">
           {[
             ["Hoe verloopt een pasafspraak?", "Lees wat je kunt verwachten, wie je meeneemt en hoe je je voorbereidt.", "/de-winkel/eerste-pasafspraak/"],
@@ -149,6 +153,45 @@ export async function PageView({ page }: { page: Page }) {
     ) : page.template === "favorites" ? (
       <FavoritesList />
     ) : null;
+
+  // Pagina vol veelgestelde vragen (onderwerpen als H2 met uitklapvragen): inhoudsopgave + zoeken naast de vragen
+  const prepared = prepareHtml(page.html);
+  const topics = prepared
+    .split(/(?=<h2 id=")/)
+    .map((part) => {
+      const m = /^<h2 id="([^"]+)">([\s\S]*?)<\/h2>/.exec(part);
+      return m ? { id: m[1], text: m[2].replace(/<[^>]+>/g, "").trim(), count: (part.match(/<details/g) ?? []).length } : null;
+    })
+    .filter((t): t is { id: string; text: string; count: number } => !!t && t.count > 0);
+  if (topics.length >= 3 && !form) {
+    const total = topics.reduce((n, t) => n + t.count, 0);
+    return (
+      <>
+        <PageHero title={page.title} crumbs={crumbNav} intro={`${total} antwoorden over trouwjurken, trouwpakken, passen, vermaken en betalen, verdeeld over ${topics.length} onderwerpen.`} />
+        <section className="container-x grid grid-cols-1 gap-10 py-12 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-16 lg:py-16">
+          <aside className="min-w-0 space-y-6 lg:sticky lg:top-28 lg:max-h-[calc(100dvh-8rem)] lg:self-start lg:overflow-y-auto">
+            <FaqTools topics={topics} contentId="faq-content" />
+            <div className="hidden rounded-[1.5rem] rounded-tr-[3rem] bg-ink p-6 text-white lg:block">
+              <p className="font-serif text-2xl leading-tight text-white">Staat je vraag er niet bij?</p>
+              <p className="mt-2 text-sm text-white/80">We helpen je graag persoonlijk verder.</p>
+              <Link href="/contact/" className="btn-white mt-4 w-full !py-3">
+                Stel je vraag
+              </Link>
+              <a href={`tel:${site.phoneIntl}`} className="mt-3 flex items-center justify-center gap-2 text-sm text-white/85 underline underline-offset-4">
+                <Icon name="phone" className="h-4 w-4" /> {site.phone}
+              </a>
+            </div>
+          </aside>
+          <div id="faq-content" className="min-w-0">
+            <Html html={page.html} className="max-w-3xl [&_h2]:mt-14 [&_h2:first-child]:mt-0" />
+          </div>
+        </section>
+        {childNav}
+        <CtaBand title="Liever persoonlijk advies?" text="Plan je pasafspraak: in de winkel beantwoorden we al je vragen, met alle tijd voor jou." />
+        <JsonLd data={ld} />
+      </>
+    );
+  }
 
   return (
     <>

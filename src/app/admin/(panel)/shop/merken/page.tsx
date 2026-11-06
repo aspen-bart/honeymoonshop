@@ -27,7 +27,7 @@ export default async function BrandsAdmin({ searchParams }: { searchParams: Prom
       label: "Merk",
       sortable: true,
       render: (r) => (
-        <a href={`/admin/merken/?bewerk=${r.id}`} className="font-medium hover:underline">
+        <a href={`/admin/shop/merken/?bewerk=${r.id}`} className="font-medium hover:underline">
           {r.name}
         </a>
       ),
@@ -41,7 +41,7 @@ export default async function BrandsAdmin({ searchParams }: { searchParams: Prom
       <PageHeader title="Merken" description="Merken van trouwjurken, trouwpakken en accessoires." />
       {sp.verwijderd && <Notice>Merk verwijderd.</Notice>}
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        <DataTable base="/admin/merken/" params={params} columns={cols} rows={rows} total={total} searchLabel="Zoek merk" filters={[{ name: "soort", label: "Soort", options: Object.entries(KIND).map(([value, label]) => ({ value, label })) }]} />
+        <DataTable base="/admin/shop/merken/" params={params} columns={cols} rows={rows} total={total} searchLabel="Zoek merk" filters={[{ name: "soort", label: "Soort", options: Object.entries(KIND).map(([value, label]) => ({ value, label })) }]} />
         <div className="space-y-4">
           <Panel title={edit ? `Bewerk ${edit.name}` : "Nieuw merk"}>
             <SimpleForm action={saveBrand} readOnly={!editor} key={edit?.id ?? "new"}>

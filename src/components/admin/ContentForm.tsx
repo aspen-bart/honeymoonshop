@@ -29,6 +29,8 @@ export type ContentData = {
   checkboxes?: { name: string; label: string; checked: boolean }[];
   metaTitle?: string | null;
   metaDescription?: string | null;
+  /** deel-afbeelding (og:image); undefined = veld niet tonen */
+  ogImage?: string | null;
   pathLocked?: boolean;
   statusLocked?: boolean;
 };
@@ -151,7 +153,7 @@ export function ContentForm({ data, action, aiAction, aiEnabled, readOnly, pathH
       )}
 
       <Panel title="Zoekmachines (SEO)">
-        <SeoFields metaTitle={data.metaTitle} metaDescription={data.metaDescription} aiAction={aiAction} aiEnabled={aiEnabled} />
+        <SeoFields metaTitle={data.metaTitle} metaDescription={data.metaDescription} aiAction={aiAction} aiEnabled={aiEnabled} ogImage={data.ogImage} showOg={data.ogImage !== undefined} path={data.path} />
       </Panel>
     </AdminForm>
   );

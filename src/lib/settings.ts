@@ -51,8 +51,15 @@ export type HomeSettings = {
   groomImage: string;
 };
 
+type LastTest = { ok: boolean; at: string; message: string };
+
 export type Connections = {
-  gtm: { enabled: boolean; containerId: string };
+  /** headCode/bodyCode: extra code (bv. verificatie, pixels) die mee wordt geladen als GTM aan staat */
+  gtm: { enabled: boolean; containerId: string; headCode: string; bodyCode: string };
+  /** SparkPost: verstuurt e-mails van formulieren (meldingen en bevestigingen) */
+  sparkpost: { enabled: boolean; region: "us" | "eu"; fromEmail: string; fromName: string; replyTo: string; keyEnc: string; keyHint: string; lastTest?: LastTest };
+  /** Pulse: tickets uit het beheer worden als JSON naar deze URL gestuurd */
+  pulse: { enabled: boolean; url: string; projectId: string; keyEnc: string; keyHint: string; lastTest?: LastTest };
   ai: { enabled: boolean; provider: "openai" | "anthropic"; model: string; imageModel: string; keyEnc: string; keyHint: string; lastTest?: { ok: boolean; at: string; message: string } };
   /** AI Foto: OpenAI (ChatGPT Images) maakt in de pas-tool een foto van de bezoeker in de jurk of het pak. */
   aiImage: { enabled: boolean; model: string; quality: "low" | "medium" | "high"; keyEnc: string; keyHint: string; lastTest?: { ok: boolean; at: string; message: string } };
@@ -147,7 +154,9 @@ export const DEFAULT_HOME: HomeSettings = {
 };
 
 export const DEFAULT_CONNECTIONS: Connections = {
-  gtm: { enabled: false, containerId: "" },
+  gtm: { enabled: false, containerId: "", headCode: "", bodyCode: "" },
+  sparkpost: { enabled: false, region: "eu", fromEmail: "info@honeymoonshop.nl", fromName: "Honeymoon shop", replyTo: "info@honeymoonshop.nl", keyEnc: "", keyHint: "" },
+  pulse: { enabled: false, url: "", projectId: "", keyEnc: "", keyHint: "" },
   ai: { enabled: false, provider: "openai", model: "", imageModel: "gpt-image-1", keyEnc: "", keyHint: "" },
   aiImage: { enabled: false, model: "gpt-image-2.5-flare", quality: "medium", keyEnc: "", keyHint: "" },
 };
@@ -163,8 +172,93 @@ export const getAppointmentSettings = cache(() => read("appointments", DEFAULT_A
 export const getHome = cache(() => read("home", DEFAULT_HOME));
 export const getConnections = cache(async () => {
   const c = await read("connections", DEFAULT_CONNECTIONS);
-  return { gtm: { ...DEFAULT_CONNECTIONS.gtm, ...c.gtm }, ai: { ...DEFAULT_CONNECTIONS.ai, ...c.ai }, aiImage: { ...DEFAULT_CONNECTIONS.aiImage, ...c.aiImage } } as Connections;
+  return {
+    gtm: { ...DEFAULT_CONNECTIONS.gtm, ...c.gtm },
+    sparkpost: { ...DEFAULT_CONNECTIONS.sparkpost, ...c.sparkpost },
+    pulse: { ...DEFAULT_CONNECTIONS.pulse, ...c.pulse },
+    ai: { ...DEFAULT_CONNECTIONS.ai, ...c.ai },
+    aiImage: { ...DEFAULT_CONNECTIONS.aiImage, ...c.aiImage },
+  } as Connections;
 });
+
+// ---------- formulieren ----------
+export type FormKey = "afspraak" | "contact" | "lookbook" | "verhaal";
+export type FormConfig = {
+  /** melding naar de winkel */
+  notify: boolean;
+  to: string;
+  subject: string;
+  /** bevestiging naar de bezoeker */
+  confirm: boolean;
+  confirmSubject: string;
+  confirmText: string;
+  /** melding op de website na versturen ({naam} = voornaam); leeg = standaardtekst */
+  successText: string;
+};
+export type FormSettings = Record<FormKey, FormConfig>;
+
+export const FORM_LABELS: Record<FormKey, { label: string; where: string; inbox: string; vars: string }> = {
+  afspraak: { label: "Pasafspraak", where: "/afspraak-maken/", inbox: "/admin/afspraken/", vars: "{naam} {type} {datum} {tijd} {telefoon} {email}" },
+  contact: { label: "Contactformulier", where: "/contact/", inbox: "/admin/berichten/", vars: "{naam} {onderwerp} {bericht} {telefoon} {email}" },
+  lookbook: { label: "Look Book-aanvraag", where: "/aanmelden-nieuwsbrief/", inbox: "/admin/berichten/", vars: "{naam} {trouwdatum} {email}" },
+  verhaal: { label: "Real bride-verhaal insturen", where: "/real-brides/real-brides-toevoegen/", inbox: "/admin/reviews/", vars: "{naam} {email}" },
+};
+
+export const DEFAULT_FORMS: FormSettings = {
+  afspraak: {
+    notify: true,
+    to: "info@honeymoonshop.nl",
+    subject: "Nieuwe pasafspraak: {type} op {datum} om {tijd}",
+    confirm: true,
+    confirmSubject: "Je pasafspraak bij de Honeymoon shop",
+    confirmText: "Hoi {naam},\n\nWat leuk dat je komt passen! Je afspraak staat gepland op {datum} om {tijd} ({type}).\n\nKun je onverhoopt niet? Laat het ons dan even weten via (010) 412 61 43.\n\nTot snel!\nTeam Honeymoon shop",
+    successText: "",
+  },
+  contact: {
+    notify: true,
+    to: "info@honeymoonshop.nl",
+    subject: "Nieuw bericht via de website: {onderwerp}",
+    confirm: false,
+    confirmSubject: "We hebben je bericht ontvangen",
+    confirmText: "Hoi {naam},\n\nBedankt voor je bericht. We reageren binnen één werkdag.\n\nGroetjes,\nTeam Honeymoon shop",
+    successText: "Bedankt {naam}! We hebben je bericht ontvangen en reageren binnen één werkdag.",
+  },
+  lookbook: {
+    notify: true,
+    to: "info@honeymoonshop.nl",
+    subject: "Nieuwe Look Book-aanvraag",
+    confirm: true,
+    confirmSubject: "Je gratis Look Book",
+    confirmText: "Hoi {naam},\n\nLeuk dat je het Look Book hebt aangevraagd! Je ontvangt het binnenkort in je mailbox.\n\nTeam Honeymoon shop",
+    successText: "Gelukt! Je ontvangt het Look Book binnenkort in je mailbox.",
+  },
+  verhaal: {
+    notify: true,
+    to: "info@honeymoonshop.nl",
+    subject: "Nieuw real bride-verhaal ingestuurd",
+    confirm: false,
+    confirmSubject: "Bedankt voor je verhaal",
+    confirmText: "Hoi {naam},\n\nDankjewel voor het delen van jullie verhaal! We bekijken het en plaatsen het binnenkort.\n\nTeam Honeymoon shop",
+    successText: "Dankjewel voor het delen! We bekijken je verhaal en plaatsen het binnenkort.",
+  },
+};
+
+export const getForms = cache(async () => {
+  const saved = await read<Partial<FormSettings>>("forms", {});
+  return Object.fromEntries((Object.keys(DEFAULT_FORMS) as FormKey[]).map((k) => [k, { ...DEFAULT_FORMS[k], ...(saved[k] ?? {}) }])) as FormSettings;
+});
+
+// ---------- SEO (algemeen) ----------
+export type SeoSettings = { googleVerification: string; bingVerification: string; robotsDisallow: string[] };
+export const DEFAULT_SEO: SeoSettings = { googleVerification: "", bingVerification: "", robotsDisallow: [] };
+export const getSeo = cache(() => read("seo", DEFAULT_SEO));
+
+// ---------- specificaties (shop) ----------
+export type ProductKind = "dress" | "suit" | "accessory";
+/** Vrije specificatievelden per soort product (naast de filterkenmerken), bv. Levertijd of Stof. */
+export type SpecSettings = Record<ProductKind, string[]>;
+export const DEFAULT_SPECS: SpecSettings = { dress: ["Levertijd", "Maten", "Sleep"], suit: ["Levertijd", "Maten", "Stof"], accessory: ["Materiaal", "Kleur", "Maat"] };
+export const getSpecs = cache(() => read("specs", DEFAULT_SPECS));
 
 export async function saveSetting(key: string, value: unknown) {
   const json = JSON.stringify(value);

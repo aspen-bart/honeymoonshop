@@ -87,10 +87,10 @@ export function Header({ phone, phoneIntl, topbar, rating }: Props) {
       >
         <div className="container-x flex h-[76px] items-center gap-3 sm:gap-6 lg:h-[84px]">
           <Link href="/" className="shrink-0" aria-label="Honeymoon shop — naar de homepage">
-            <Logo className="h-[12px] w-auto min-[400px]:h-[14px] sm:h-[19px] xl:h-[22px]" />
+            <Logo className="h-[12px] w-auto min-[400px]:h-[14px] sm:h-[19px] xl:h-[17px] 2xl:h-[22px]" />
           </Link>
 
-          <nav aria-label="Hoofdmenu" className="ml-auto hidden lg:block">
+          <nav aria-label="Hoofdmenu" className="ml-auto hidden xl:block">
             <ul className="flex items-center gap-1">
               {MAIN_MENU.map((item, i) => {
                 const active = isActive(item, pathname);
@@ -100,7 +100,7 @@ export function Header({ phone, phoneIntl, topbar, rating }: Props) {
                       <Link
                         href={item.href}
                         aria-current={pathname === item.href ? "page" : undefined}
-                        className={`relative px-3 py-2 text-[0.82rem] font-medium uppercase tracking-[0.16em] after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:origin-left after:scale-x-0 after:bg-current after:transition hover:after:scale-x-100 ${active ? "after:scale-x-100" : ""}`}
+                        className={`relative whitespace-nowrap px-2 py-2 text-[0.78rem] font-medium uppercase tracking-[0.12em] 2xl:px-3 2xl:text-[0.82rem] 2xl:tracking-[0.16em] after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:origin-left after:scale-x-0 after:bg-current after:transition hover:after:scale-x-100 ${active ? "after:scale-x-100" : ""}`}
                       >
                         {item.label}
                       </Link>
@@ -121,7 +121,7 @@ export function Header({ phone, phoneIntl, topbar, rating }: Props) {
             </ul>
           </nav>
 
-          <div className="ml-auto flex items-center gap-1 lg:ml-2">
+          <div className="ml-auto flex items-center gap-1 xl:ml-2">
             <a href={`tel:${phoneIntl}`} className="hidden rounded-full p-2.5 hover:bg-black/5 sm:inline-flex" aria-label={`Bel ons: ${phone}`}>
               <Icon name="phone" />
             </a>
@@ -134,10 +134,10 @@ export function Header({ phone, phoneIntl, topbar, rating }: Props) {
                 <span className="absolute right-0.5 top-0.5 grid h-4.5 min-w-4.5 place-items-center rounded-full bg-lilac-700 px-1 text-[0.65rem] font-semibold text-white">{fav.list.length}</span>
               )}
             </Link>
-            <Link href="/afspraak-maken/" className={`ml-2 hidden sm:inline-flex ${transparent ? "btn-white" : "btn-primary"} !px-5 !py-3 !text-[0.75rem]`}>
+            <Link href="/afspraak-maken/" className={`ml-2 hidden sm:inline-flex ${transparent ? "btn-white" : "btn-primary"} whitespace-nowrap !px-5 !py-3 !text-[0.75rem]`}>
               Afspraak maken
             </Link>
-            <button type="button" className="rounded-full p-2 hover:bg-black/5 sm:ml-1 sm:p-2.5 lg:hidden" aria-expanded={mobile} aria-controls="mobile-menu" aria-label="Menu openen" onClick={() => setMobile(true)}>
+            <button type="button" className="rounded-full p-2 hover:bg-black/5 sm:ml-1 sm:p-2.5 xl:hidden" aria-expanded={mobile} aria-controls="mobile-menu" aria-label="Menu openen" onClick={() => setMobile(true)}>
               <Icon name="menu" className="h-6 w-6" />
             </button>
           </div>
@@ -149,7 +149,7 @@ export function Header({ phone, phoneIntl, topbar, rating }: Props) {
             id={`mega-${i}`}
             hidden={open !== i}
             onMouseEnter={() => enter(i)}
-            className="absolute inset-x-0 top-full hidden border-t border-line bg-white text-ink shadow-[0_30px_60px_-30px_rgba(43,40,67,0.35)] lg:block"
+            className="absolute inset-x-0 top-full hidden border-t border-line bg-white text-ink shadow-[0_30px_60px_-30px_rgba(43,40,67,0.35)] xl:block"
           >
             <div className="container-x grid grid-cols-12 gap-10 py-10">
               <div className={`grid gap-8 ${item.feature ? "col-span-8 grid-cols-3" : "col-span-12 grid-cols-4"}`}>
@@ -187,7 +187,7 @@ export function Header({ phone, phoneIntl, topbar, rating }: Props) {
       </header>
 
       {/* Mobiel menu */}
-      <div id="mobile-menu" className={`fixed inset-0 z-[60] lg:hidden ${mobile ? "" : "pointer-events-none"}`} aria-hidden={!mobile} inert={!mobile}>
+      <div id="mobile-menu" className={`fixed inset-0 z-[60] xl:hidden ${mobile ? "" : "pointer-events-none"}`} aria-hidden={!mobile} inert={!mobile}>
         <div className={`absolute inset-0 bg-ink/50 transition-opacity ${mobile ? "opacity-100" : "opacity-0"}`} onClick={() => setMobile(false)} />
         <nav aria-label="Mobiel menu" className={`absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white text-ink transition-transform duration-500 ease-[var(--ease-soft)] ${mobile ? "translate-x-0" : "translate-x-full"}`}>
           <div className="flex h-[76px] items-center justify-between border-b border-line px-5">

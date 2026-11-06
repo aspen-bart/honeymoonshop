@@ -2,10 +2,12 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { CtaBand, FaqList } from "@/components/site/blocks";
 import { GarmentBrowser, type BrowserItem } from "@/components/site/GarmentBrowser";
+import { GoogleReviews } from "@/components/site/GoogleReviews";
 import { Html } from "@/components/site/Html";
 import { JsonLd } from "@/components/site/JsonLd";
 import { FILTERS, garments } from "@/lib/content";
 import { db } from "@/lib/db";
+import { withoutFaqSection } from "@/lib/html";
 import type { Faq } from "@/lib/json";
 import { breadcrumbLd, faqLd, graph, itemListLd, type Crumb } from "@/lib/seo";
 
@@ -41,6 +43,7 @@ export async function ListingView(props: {
   const collections = await db.category.findMany({ where: { kind: props.kind, status: "published" }, orderBy: { sortOrder: "asc" }, select: { path: true, name: true } });
   const base = props.kind === "dress" ? { path: "/trouwjurken/", label: "Alle trouwjurken" } : { path: "/pakken/", label: "Alle trouwpakken" };
   const kindLabel = props.kind === "dress" ? "trouwjurken" : "trouwpakken";
+  const bottomHtml = props.bottomHtml && props.faqs?.length ? withoutFaqSection(props.bottomHtml) : props.bottomHtml;
   // Filterpagina's tonen de geselecteerde subset; de lijst-data blijft compleet zodat filters combineren.
   const browserItems = props.initial ? items : items;
 
@@ -67,16 +70,32 @@ export async function ListingView(props: {
         <GarmentBrowser items={browserItems} groups={FILTERS[props.kind]} initial={props.initial} kindLabel={kindLabel} />
       </section>
 
-      {(props.bottomHtml || (props.faqs && props.faqs.length > 0)) && (
+      <GoogleReviews focus={props.kind} />
+
+      {/* SEO-tekst (de FAQ die in de oude tekst zat, staat één keer onderaan) */}
+      {bottomHtml && (
+        <section className="border-t border-line py-16 lg:py-20">
+          <Html html={bottomHtml} className="container-x max-w-3xl" />
+        </section>
+      )}
+
+      {props.faqs && props.faqs.length > 0 && (
         <section className="border-t border-line bg-cream py-16 lg:py-20">
-          <div className="container-x grid gap-12 lg:grid-cols-12">
-            {props.bottomHtml && <Html html={props.bottomHtml} className={props.faqs?.length ? "lg:col-span-7" : "mx-auto max-w-3xl lg:col-span-12"} />}
-            {props.faqs && props.faqs.length > 0 && (
-              <div className={props.bottomHtml ? "lg:col-span-4 lg:col-start-9" : "lg:col-span-8"}>
-                <h2 className="mb-6 text-4xl">Veelgestelde vragen</h2>
-                <FaqList items={props.faqs} />
-              </div>
-            )}
+          <div className="container-x grid gap-10 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <p className="eyebrow text-lilac-700">Goed om te weten</p>
+              <h2 className="mt-3 text-4xl sm:text-5xl">Veelgestelde vragen</h2>
+              <p className="mt-4 text-ink-soft">
+                Meer antwoorden vind je bij{" "}
+                <Link href="/de-winkel/veelgestelde-vragen/" className="link">
+                  alle veelgestelde vragen
+                </Link>
+                .
+              </p>
+            </div>
+            <div className="lg:col-span-7 lg:col-start-6">
+              <FaqList items={props.faqs} />
+            </div>
           </div>
         </section>
       )}

@@ -26,11 +26,15 @@ export const EXTRA_REDIRECTS: [string, string][] = [
   ["/trouwjurken/trouwjurk-lucienne-jarice/", "/trouwjurken/jarice/"],
   ["/bruid/bruidsriemen/riemen/", "/bruid/bruidsaccessoires/"],
   ["/trouwjurken/prijs/tot-1000/", "/trouwjurken/0-1000/"],
+  // lege pagina op de oude site; de uitgebreide silhouettengids staat elders
+  ["/atelier-van-esmee/silhouet/", "/silhouetten-voor-je-trouwjurk/"],
 ];
 
 const BRAND = / ?[-|–] ?Honeymoon ?shop$/i;
 
 export async function polish(db: PrismaClient) {
+  // Lege pagina's die een redirect krijgen, verdwijnen (anders zou de pagina de redirect blokkeren)
+  await db.page.deleteMany({ where: { path: { in: EXTRA_REDIRECTS.map(([from]) => from) }, html: "" } });
   for (const [from, to] of EXTRA_REDIRECTS) await db.redirect.upsert({ where: { from }, create: { from, to }, update: { to } });
 
   const root = await db.category.findUnique({ where: { path: "/bruid/accessoires/" } });

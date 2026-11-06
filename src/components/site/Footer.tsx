@@ -67,7 +67,7 @@ export function Footer({ site, consentEnabled }: { site: SiteSettings; consentEn
                   {site.phone}
                 </a>
                 <br />
-                <a href={`mailto:${site.email}`} className="hover:underline">
+                <a href={`mailto:${site.email}`} className="break-all hover:underline">
                   {site.email}
                 </a>
               </p>

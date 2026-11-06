@@ -10,7 +10,7 @@ import filtersJson from "../../content/filters.json";
 export type FilterGroup = { name: string; terms: { name: string; slug: string }[] };
 export const FILTERS = filtersJson as { dress: FilterGroup[]; suit: FilterGroup[] };
 
-export const PER_PAGE = { blog: 12, reviews: 24 };
+export const PER_PAGE = { blog: 12, reviews: 48 };
 
 const published = { status: "published" };
 

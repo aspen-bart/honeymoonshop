@@ -2,9 +2,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+import { after } from "next/server";
 import { z } from "zod";
 import { slotIsFree } from "@/lib/appointments";
 import { db } from "@/lib/db";
+import { notifyForm, successText } from "@/lib/mail";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAppointmentSettings } from "@/lib/settings";
 import { slugify } from "@/lib/text";
@@ -85,6 +87,22 @@ export async function bookAppointment(_: FormState, form: FormData): Promise<For
       source: d.source || null,
     },
   });
+  const first = d.name.split(" ")[0];
+  after(() =>
+    notifyForm("afspraak", { naam: first, type: type.label, datum: d.date, tijd: d.time, telefoon: d.phone, email: d.email }, [
+      ["Soort", type.label],
+      ["Datum", d.date],
+      ["Tijd", d.time],
+      ["Naam", d.name],
+      ["E-mail", d.email],
+      ["Telefoon", d.phone],
+      ["Trouwdatum", d.weddingDate],
+      ["Gezelschap", String(d.companions)],
+      ["Budget", d.budget],
+      ["Opmerkingen", d.notes],
+      ["Favorieten", d.favorites.join(", ")],
+    ]),
+  );
   return { ok: true, data: { id: appt.id, type: type.label, date: d.date, time: d.time, name: d.name, email: d.email, duration: String(type.durationMin) } };
 }
 
@@ -105,7 +123,9 @@ export async function sendContact(_: FormState, form: FormData): Promise<FormSta
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error), message: "Controleer de gemarkeerde velden." };
   const d = parsed.data;
   await db.contactMessage.create({ data: { name: d.name, email: d.email, phone: d.phone || null, subject: d.subject || null, message: d.message, about: d.about || null } });
-  return { ok: true, message: `Bedankt ${d.name.split(" ")[0]}! We hebben je bericht ontvangen en reageren binnen één werkdag.` };
+  const vars = { naam: d.name.split(" ")[0], onderwerp: d.subject || "(geen onderwerp)", bericht: d.message, telefoon: d.phone || "", email: d.email };
+  after(() => notifyForm("contact", vars, [["Naam", d.name], ["E-mail", d.email], ["Telefoon", d.phone], ["Onderwerp", d.subject], ["Over", d.about], ["Bericht", d.message]]));
+  return { ok: true, message: await successText("contact", vars, `Bedankt ${vars.naam}! We hebben je bericht ontvangen en reageren binnen één werkdag.`) };
 }
 
 const newsletterSchema = z.object({ name, email, weddingDate: z.string().regex(/^(\d{4}-\d{2}-\d{2})?$/).optional(), privacy: z.literal("on", { errorMap: () => ({ message: "Ga akkoord met de privacyverklaring" }) }) });
@@ -117,7 +137,9 @@ export async function requestLookBook(_: FormState, form: FormData): Promise<For
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error), message: "Controleer de gemarkeerde velden." };
   const d = parsed.data;
   await db.contactMessage.create({ data: { name: d.name, email: d.email, subject: "Aanvraag gratis Look Book", message: `Look Book aangevraagd via de website.${d.weddingDate ? ` Trouwdatum: ${d.weddingDate}.` : ""}` } });
-  return { ok: true, message: "Gelukt! Je ontvangt het Look Book binnenkort in je mailbox." };
+  const vars = { naam: d.name.split(" ")[0], trouwdatum: d.weddingDate || "", email: d.email };
+  after(() => notifyForm("lookbook", vars, [["Naam", d.name], ["E-mail", d.email], ["Trouwdatum", d.weddingDate]]));
+  return { ok: true, message: await successText("lookbook", vars, "Gelukt! Je ontvangt het Look Book binnenkort in je mailbox.") };
 }
 
 const storySchema = z.object({ name: z.string().trim().min(2, "Vul jullie namen in").max(100), email, story: z.string().trim().min(40, "Vertel iets meer (minimaal 40 tekens)").max(5000), privacy: z.literal("on", { errorMap: () => ({ message: "Geef toestemming om je verhaal te plaatsen" }) }) });
@@ -145,5 +167,7 @@ export async function submitStory(_: FormState, form: FormData): Promise<FormSta
     .join("");
   await db.review.create({ data: { path: `/real-brides/${slug}/`, slug, name: d.name, html, image, status: "draft", metaDescription: null } });
   await db.contactMessage.create({ data: { name: d.name, email: d.email, subject: "Nieuw real-bride-verhaal ingestuurd", message: "Er staat een nieuw verhaal klaar in Reviews (status: concept)." } });
-  return { ok: true, message: "Dankjewel voor het delen! We bekijken je verhaal en plaatsen het binnenkort." };
+  const vars = { naam: d.name.split(" ")[0], email: d.email };
+  after(() => notifyForm("verhaal", vars, [["Naam", d.name], ["E-mail", d.email], ["Foto", image], ["Verhaal", d.story]]));
+  return { ok: true, message: await successText("verhaal", vars, "Dankjewel voor het delen! We bekijken je verhaal en plaatsen het binnenkort.") };
 }

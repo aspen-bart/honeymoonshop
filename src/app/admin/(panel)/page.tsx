@@ -51,10 +51,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         action={
           user.role !== "viewer" && (
             <>
-              <Link href="/admin/producten/nieuw/?soort=dress" className={btnSm}>
+              <Link href="/admin/shop/producten/nieuw/?soort=dress" className={btnSm}>
                 + Nieuwe jurk
               </Link>
-              <Link href="/admin/blog/nieuw/" className={btnSm}>
+              <Link href="/admin/blogs/nieuw/" className={btnSm}>
                 + Nieuwe blog
               </Link>
               <Link href="/admin/paginas/nieuw/" className={btnSm}>
@@ -74,11 +74,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <Stat label="Trouwjurken" value={dresses} href="/admin/producten/?soort=dress" />
-        <Stat label="Trouwpakken" value={suits} href="/admin/producten/?soort=suit" />
-        <Stat label="Accessoires" value={accessories} href="/admin/producten/?soort=accessory" />
+        <Stat label="Trouwjurken" value={dresses} href="/admin/shop/producten/?soort=dress" />
+        <Stat label="Trouwpakken" value={suits} href="/admin/shop/producten/?soort=suit" />
+        <Stat label="Accessoires" value={accessories} href="/admin/shop/producten/?soort=accessory" />
         <Stat label="Pagina's" value={pages} href="/admin/paginas/" />
-        <Stat label="Blogs" value={posts} href="/admin/blog/" />
+        <Stat label="Blogs" value={posts} href="/admin/blogs/" />
         <Stat label="Concepten" value={drafts} sub="pagina's, blogs, producten, reviews" />
       </div>
 

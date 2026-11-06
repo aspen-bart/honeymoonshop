@@ -280,3 +280,34 @@ model ContactMessage {
   handled   Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+// ---------- support ----------
+
+/// Tickets uit het beheer (wijzigingsverzoeken, bugs, vragen); worden doorgezet naar Pulse als die connectie aan staat.
+model Ticket {
+  id            String    @id @default(cuid())
+  number        Int       @unique
+  subject       String
+  description   String
+  /// "bug" | "wijziging" | "vraag" | "nieuw"
+  type          String    @default("wijziging")
+  /// "laag" | "normaal" | "hoog" | "urgent"
+  priority      String    @default("normaal")
+  /// "open" | "in-behandeling" | "wacht-op-klant" | "opgelost" | "gesloten"
+  status        String    @default("open")
+  /// pagina in het beheer of op de site waar het ticket over gaat
+  pageUrl       String?
+  /// ["/uploads/tickets/…"]
+  attachments   String    @default("[]")
+  createdById   String?
+  createdByName String
+  createdByEmail String?
+  pulseId       String?
+  pulseSyncedAt DateTime?
+  pulseError    String?
+  internalNote  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, createdAt])
+}
