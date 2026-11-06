@@ -195,7 +195,7 @@ export async function PageView({ page }: { page: Page }) {
 
   return (
     <>
-      <PageHero title={page.title} image={page.heroImage} imageAlt={page.heroAlt} crumbs={crumbNav} />
+      <PageHero title={page.title} image={page.heroImage} imageAlt={page.heroAlt} crumbs={crumbNav} narrow={!form && !!page.html} />
       <section className="container-x py-14 lg:py-20">
         {page.html && <Html html={page.html} className={`mx-auto max-w-3xl ${form ? "mb-14" : ""}`} />}
         {form}

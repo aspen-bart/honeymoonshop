@@ -169,6 +169,30 @@
   .prose-hms figure img {
     @apply my-0 aspect-[4/5];
   }
+  /* Tegels (kop + foto + knop): even groot, op desktop naast elkaar */
+  .prose-hms .tiles {
+    @apply my-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  .prose-hms a.tile {
+    @apply flex flex-col overflow-hidden rounded-2xl border border-line bg-white no-underline transition hover:-translate-y-0.5 hover:border-ink hover:shadow-lg;
+  }
+  .prose-hms a.tile img {
+    @apply m-0 aspect-[4/5] w-full rounded-none object-cover;
+  }
+  .prose-hms .tile-title {
+    @apply px-5 pt-4 font-serif text-2xl text-ink;
+  }
+  .prose-hms .tile-btn {
+    @apply mx-5 mb-5 mt-3 inline-flex items-center justify-center rounded-full bg-ink px-4 py-2.5 text-sm font-medium tracking-wide text-white;
+  }
+  /* Eén afbeelding in een figure is geen galerij: volle breedte en de hele foto tonen (niet bijsnijden) */
+  .prose-hms figure:has(> img:only-child) {
+    display: block;
+  }
+  .prose-hms figure > img:only-child {
+    aspect-ratio: auto;
+    object-fit: contain;
+  }
   .prose-hms table {
     @apply w-full border-collapse text-left text-sm;
   }

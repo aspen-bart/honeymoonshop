@@ -1,12 +1,13 @@
+import Image from "next/image";
 import { Icon } from "@/components/Icon";
 import { getSite } from "@/lib/settings";
 import reviewsJson from "../../../content/google-reviews.json";
 import { DragRail } from "./DragRail";
 
 // Echte Google-reviews van de Honeymoon shop (overgenomen uit de Trustindex-widget van de oude site, zie
-// scripts/google-reviews.mjs). Bewust geen aggregateRating in structured data: Google staat zelf-gepubliceerde
+// scripts/google-reviews.mjs), met de profielfoto van de reviewer. Bewust geen aggregateRating in structured data: Google staat zelf-gepubliceerde
 // reviews van een bedrijf niet toe als sterren in de zoekresultaten.
-type GoogleReview = { name: string; stars: number; text: string };
+type GoogleReview = { name: string; stars: number; text: string; avatar?: string | null };
 const REVIEWS = reviewsJson as GoogleReview[];
 
 const GOOGLE = "M21.35 11.1h-9.17v2.98h5.3c-.23 1.24-.93 2.3-1.98 3v2.5h3.2c1.87-1.73 2.95-4.27 2.95-7.28 0-.4-.03-.8-.1-1.2zM12.18 21.5c2.68 0 4.93-.89 6.57-2.42l-3.2-2.5c-.89.6-2.03.95-3.37.95-2.59 0-4.78-1.75-5.56-4.1H3.3v2.58A9.92 9.92 0 0 0 12.18 21.5zM6.62 13.43a5.97 5.97 0 0 1 0-3.86V7H3.3a9.93 9.93 0 0 0 0 8.99zM12.18 5.47c1.46 0 2.77.5 3.8 1.48l2.84-2.84A9.53 9.53 0 0 0 12.18 1.5 9.92 9.92 0 0 0 3.3 7l3.32 2.57c.78-2.35 2.97-4.1 5.56-4.1z";
@@ -75,10 +76,17 @@ export async function GoogleReviews({ title = "Wat bruidsparen op Google zeggen"
                 <p className="line-clamp-6">{r.text}</p>
               </blockquote>
               <figcaption className="mt-5 flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-lilac text-sm font-semibold text-ink" aria-hidden="true">
-                  {initials(r.name)}
+                {r.avatar ? (
+                  <Image src={r.avatar} alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white" />
+                ) : (
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lilac text-sm font-semibold text-ink" aria-hidden="true">
+                    {initials(r.name)}
+                  </span>
+                )}
+                <span className="text-sm leading-tight">
+                  <span className="block font-medium">{r.name}</span>
+                  <span className="text-xs text-ink-soft">Google-review</span>
                 </span>
-                <span className="text-sm font-medium">{r.name}</span>
               </figcaption>
             </figure>
           ))}

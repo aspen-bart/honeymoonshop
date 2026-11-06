@@ -79,6 +79,20 @@ function stepsBlocks(html: string) {
   });
 }
 
+/**
+ * Blokken van de oude site "kop + foto met link + knop" (bv. Bride to be / Groom to be / Doorpassen op
+ * /afspraak-maken/): twee of meer achter elkaar worden even grote tegels naast elkaar.
+ */
+const TILE = String.raw`<h3>([^<]+)<\/h3>\s*(?:<figure>\s*)?<a href="([^"]+)">\s*(<img [^>]*>)\s*<\/a>\s*(?:<figcaption>\s*<\/figcaption>\s*)?(?:<\/figure>\s*)?<a href="\2">\s*([^<]+?)\s*<\/a>`;
+function ctaTiles(html: string) {
+  return html.replace(new RegExp(String.raw`(?:${TILE}\s*){2,}`, "g"), (block) => {
+    const tiles = [...block.matchAll(new RegExp(TILE, "g"))].map(
+      ([, title, href, img, label]) => `<a class="tile" href="${href}">${img}<span class="tile-title">${title.trim()}</span><span class="tile-btn">${label.trim().toLowerCase().replace(/^./, (c) => c.toUpperCase())}</span></a>`,
+    );
+    return `<div class="tiles">${tiles.join("")}</div>`;
+  });
+}
+
 /** Elke H2 krijgt een id, zodat je ernaartoe kunt linken (inhoudsopgave FAQ-pagina). */
 function anchorHeadings(html: string) {
   const used = new Map<string, number>();
@@ -93,7 +107,7 @@ function anchorHeadings(html: string) {
 
 /** Inhoudelijke bewerkingen (zonder database): opruimen, stappenplannen en ankers. */
 export function prepareHtml(html: string) {
-  return anchorHeadings(stepsBlocks(dropEmptyHeadings(cleanLegacy(html))));
+  return anchorHeadings(ctaTiles(stepsBlocks(dropEmptyHeadings(cleanLegacy(html)))));
 }
 
 /** H2's met hun anker, voor een inhoudsopgave. */

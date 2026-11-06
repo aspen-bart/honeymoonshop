@@ -342,9 +342,6 @@ function TryOnDialog({ productName, productPath, kind, images, spot, appointment
               <div className="relative hidden aspect-[3/4] overflow-hidden rounded-[1.25rem] rounded-tr-[4rem] bg-cream-2 md:block">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={images[0]?.src} alt="" className="h-full w-full object-cover" />
-                <div className="absolute grid aspect-[4/5] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-dashed border-white bg-white/30 text-3xl backdrop-blur-sm" style={{ left: `${s.x}%`, top: `${s.y}%`, width: `${s.size * 1.2}%` }}>
-                  🙂
-                </div>
               </div>
               <div>
                 <p className="text-lg text-ink-2">

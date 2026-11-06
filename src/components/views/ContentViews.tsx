@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { CtaBand, PageHero, PostCard, ReviewCard, SectionHead } from "@/components/site/blocks";
+import { GoogleReviews } from "@/components/site/GoogleReviews";
 import { Html } from "@/components/site/Html";
 import { JsonLd } from "@/components/site/JsonLd";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -175,7 +176,9 @@ export async function ReviewsView({ page }: { page: number }) {
         eyebrow={`${total} echte verhalen`}
         intro={listing?.html && page === 1 ? <Html html={listing.html} /> : "Bruiden en bruidegoms die hun look bij de Honeymoon shop vonden, vertellen over hun ervaring en hun grote dag."}
       />
+      <GoogleReviews title="Reviews van echte bruidsparen op Google" tone="white" />
       <section className="container-x py-12 lg:py-16">
+        <h2 className="mb-8 text-4xl">Hun verhalen en trouwfoto&apos;s</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {reviews.map((r) => (
             <ReviewCard key={r.id} r={r} />
@@ -248,6 +251,7 @@ export async function ReviewView({ review }: { review: Review }) {
           </Link>
         </div>
       </article>
+      <GoogleReviews title="Meer bruidsparen over de Honeymoon shop" />
       {more.length > 0 && (
         <section className="bg-blush py-16">
           <div className="container-x">

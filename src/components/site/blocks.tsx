@@ -114,17 +114,21 @@ export function CtaBand({ title = "Klaar om jouw look te vinden?", text = "Plan 
 }
 
 /** Kop van een gewone pagina: kruimelpad, H1 en optioneel een beeld. */
-export function PageHero({ title, intro, image, imageAlt = "", crumbs, eyebrow }: { title: string; intro?: React.ReactNode; image?: string | null; imageAlt?: string; crumbs: React.ReactNode; eyebrow?: string }) {
+/** narrow: kop in dezelfde smalle kolom als de tekst eronder (max-w-3xl, gecentreerd), zodat ze netjes uitlijnen. */
+export function PageHero({ title, intro, image, imageAlt = "", crumbs, eyebrow, narrow }: { title: string; intro?: React.ReactNode; image?: string | null; imageAlt?: string; crumbs: React.ReactNode; eyebrow?: string; narrow?: boolean }) {
+  const col = narrow ? "mx-auto max-w-3xl" : "";
   if (image) {
     return (
       <section className="on-dark relative isolate flex min-h-[52vh] items-end overflow-hidden bg-ink text-white">
         <Image src={image} alt={imageAlt} fill priority sizes="100vw" className="-z-10 object-cover opacity-80" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-ink/40 to-ink/10" />
-        <div className="container-x pb-12 pt-28">
+        <div className="container-x w-full pb-12 pt-28">
+          <div className={col}>
           {crumbs}
           {eyebrow && <p className="eyebrow mt-6 text-lilac">{eyebrow}</p>}
           <h1 className="mt-4 max-w-4xl text-5xl text-white sm:text-6xl lg:text-7xl">{title}</h1>
           {intro && <div className="mt-4 max-w-2xl text-lg text-white/85">{intro}</div>}
+          </div>
         </div>
       </section>
     );
@@ -132,10 +136,12 @@ export function PageHero({ title, intro, image, imageAlt = "", crumbs, eyebrow }
   return (
     <section className="bg-cream">
       <div className="container-x pb-10 pt-10 lg:pb-14">
+        <div className={col}>
         {crumbs}
         {eyebrow && <p className="eyebrow mt-8 text-lilac-700">{eyebrow}</p>}
         <h1 className="mt-4 max-w-4xl text-5xl sm:text-6xl lg:text-7xl">{title}</h1>
         {intro && <div className="mt-4 max-w-2xl text-lg text-ink-soft">{intro}</div>}
+        </div>
       </div>
     </section>
   );
